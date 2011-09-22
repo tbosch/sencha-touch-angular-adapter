@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html xmlns:ng="http://angularjs.org" xmlns:stng="http://sencha-touch-angular.org">
+<!--
+Test page during development.
+-->
+<head>
+    <title>MobileToys</title>
+    <script>parent.instrument && parent.instrument(window);</script>
+    <meta name="viewport" content="width=device-width; initial-scale=1.0; maximum-scale=1.0; user-scalable=0;"/>
+
+    <link rel="stylesheet" href="lib/sencha-touch.css"/>
+
+    <script src="lib/jquery-1.6.2.js"></script>
+    <script src="lib/angular-0.9.19.js"></script>
+    <script src="lib/sencha-touch-1.0.1.js"></script>
+    <script src="adapter.js"></script>
+
+</head>
+<body ng:controller="TestController">
+<script>
+    function TestController(activate, show, hide) {
+        this.items = [
+            {name: 'Hallo'},
+            {name: 'Du'},
+            {name: 'da'}
+        ];
+        this.isSelected = function(item) {
+            return item.name === 'Du';
+        }
+        this.onActivate = function(id) {
+            console.log("activated " + id);
+        }
+        this.onDeactivate = function(id) {
+            console.log("deactivated " + id);
+        }
+        this.page = function(page) {
+            activate(page, 'slide');
+        }
+        this.showPopup = function(id) {
+            show(id);
+        }
+        this.hidePopup = function(id) {
+            hide(id);
+        }
+        this.doClick = function() {
+            console.log('clicked');
+        }
+    }
+
+</script>
+<div type="panel" centered="true" hide-on-mask-tap="false" floating="true" modal="true" title="Panel1" id="popup1"
+     st:event="beforeactivate:onActivate('popup1'),deactivate:onDeactivate()">
+    <div type="toolbar" dock="bottom">
+        <div type="button" text="Hide" st:event="tap:hidePopup('popup1')"></div>
+    </div>
+    <input type="text" name="test">
+    <input type="text" name="test">
+</div>
+
+<div type="panel" fullscreen="true" layout="card">
+    <div type="panel" title="Panel1" id="page1" st:event="beforeactivate:onActivate('page1'),deactivate:onDeactivate()">
+        <div type="toolbar" dock="top">
+            <div type="button" text="Page2" st:event="tap:page('page2')"></div>
+            <div type="button" text="Popup" st:event="tap:showPopup('popup1')"></div>
+        </div>
+        <div type="grouped-list">
+            <div group="{{1+2}}">
+                <div>
+                    a1
+                </div>
+                <div>
+                    a2
+                </div>
+            </div>
+            <div group="'B'">
+                <div>
+                    b1
+                </div>
+                <div>
+                    b2
+                </div>
+            </div>
+
+        </div>
+        <div type="list">
+            <div ng:repeat="item in items" st:selected="isSelected(item)">
+                {{item.name}}
+            </div>
+        </div>
+    </div>
+    <div type="panel" title="Panel2" id="page2" st:event="activate:onActivate(),deactivate:onDeactivate()">
+        <div type="toolbar" dock="top">
+            <div type="button" text="Page1" st:event="tap:page('page1')"></div>
+        </div>
+        <input type="text" name="test">
+    </div>
+</div>
+<!--
+<script>
+    setTimeout(function() {
+
+        Ext.regModel('Contact', {
+            fields: ['firstName', 'lastName']
+        });
+
+        var oldStore = new Ext.data.JsonStore({
+            model  : 'Contact',
+            sorters: 'lastName',
+
+            getGroupString : function(record) {
+                return record.get('lastName')[0];
+            },
+
+            data: [
+                {firstName: 'Tommy',   lastName: 'Maintz'},
+                {firstName: 'Rob',     lastName: 'Dougan'}
+            ]
+        });
+        console.log(oldStore.getGroups());
+        var records = [
+                        {id:'1', data: {firstName: 'AAJay',     lastName: 'AARobinson'}},
+                        {id: '2', data: {firstName: 'BBJay',     lastName: 'BBRobinson'}}
+                    ];
+        var store = {
+            events: true,
+            on: function() {
+
+            },
+            un: function() {
+
+            },
+            isLoading: function() {
+                return false;
+            },
+            getRange: function() {
+                return records;
+            },
+            getGroups: function() {
+                return [
+                    {name: 'AA', children: [
+                        records[0]
+                    ]},
+                    {name: 'BB', children: [
+                        records[1]
+                    ]}
+
+                ];
+            },
+            getAt: function(index) {
+                return records[index];
+            }
+
+        };
+
+        var list = new Ext.List({
+            fullscreen: true,
+
+            itemTpl : '{firstName} {lastName}',
+            grouped : true,
+            indexBar: true,
+
+            store: oldStore
+        });
+        list.show();
+    }, 1000);
+</script>
+-->
+
+</body>
+</html>

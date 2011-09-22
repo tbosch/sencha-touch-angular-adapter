@@ -1,0 +1,10 @@
+.DS_Store
+
+# Ignore target
+target
+
+# Ignore IDEA files
+.idea
+*.iml
+*.ipr
+*.iws
