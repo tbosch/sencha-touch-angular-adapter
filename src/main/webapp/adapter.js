@@ -1,3 +1,4 @@
+// TODO make this configurable via a tag!
 Ext.setup({
     tabletStartupScreen: 'tablet_startup.png',
     phoneStartupScreen: 'phone_startup.png',
@@ -6,26 +7,66 @@ Ext.setup({
     onReady: compilePage
 });
 
-var afterCompileQueue = [];
+var afterEvalQueue = [];
 
-function executeAfterCompileQueue() {
-    while (afterCompileQueue.length > 0) {
-        var callback = afterCompileQueue.shift();
+function executeAfterEvalQueue() {
+    while (afterEvalQueue.length > 0) {
+        var callback = afterEvalQueue.shift();
         callback();
     }
 }
 
-function addAfterCompileCallback(callback) {
-    if (afterCompileQueue.length == 0) {
-        setTimeout(executeAfterCompileQueue, 0);
+function addAfterEval(callback) {
+    afterEvalQueue.push(callback);
+}
+
+function isConnectedToDocument(element) {
+    var rootElement = document.documentElement;
+    while (element!==null && element!==rootElement) {
+        element = element.parentNode;
     }
-    afterCompileQueue.push(callback);
+    return element===rootElement;
+}
+
+function destroyNotConnectedWidgets() {
+    var widget;
+    var widgets = Ext.ComponentMgr.all.getValues();
+    for (var i=0; i<widgets.length; i++) {
+        widget = widgets[i];
+        if (widget.el && widget.el.dom) {
+            if (!isConnectedToDocument(widget.el.dom)) {
+                widget.destroy();
+            }
+        }
+    }
+}
+
+var layoutRequestedContainer = {};
+
+function requestLayout(container) {
+    if (!layoutRequestedContainer[container.id]) {
+        layoutRequestedContainer[container.id] = container;
+    }
+}
+
+function layoutContainer() {
+    for (var key in layoutRequestedContainer) {
+        var container = layoutRequestedContainer[key];
+        container.doLayout();
+    }
 }
 
 function compilePage() {
     var element = $("body");
-    angular.compile(element)();
-    executeAfterCompileQueue();
+    var scope = angular.compile(element)();
+    function refresh() {
+        executeAfterEvalQueue();
+        destroyNotConnectedWidgets();
+        // container layout must not happen until the hierarchy is completely updated.
+        layoutContainer();
+    }
+    scope.$onEval(99999, refresh);
+    refresh();
 }
 
 
@@ -91,10 +132,12 @@ angular.service("activate", function() {
         var parent = angular.element(element.parent());
         var parentWidget = getWidget(parent);
         parentWidget.layout.setActiveItem(widget, animation);
-        parentWidget.doLayout();
+        requestLayout(parentWidget);
     }
 });
 
+// TODO replace this with st:visible attribute...
+// Or add it additionally?
 angular.service("show", function() {
     return function(id) {
         var element = angular.element("#" + id);
@@ -111,8 +154,68 @@ angular.service("hide", function() {
     }
 });
 
+
+function addEventCallbackToWidget(widget, eventType) {
+    function eventCallback(event) {
+        var target;
+        if (event.getTargetEl) {
+            target = event.getTargetEl().dom;
+        } else {
+            target = event.getTarget();
+        }
+        // Search from target upwards until we find
+        // an element with a listener for that eventType
+        var widgetEl = widget.dom;
+        var customEvents, scope, ngEl;
+        var lastScope;
+        do {
+            ngEl = angular.element(target);
+            customEvents = ngEl.data().customEvents;
+            if (customEvents && customEvents[eventType]) {
+                var listeners = customEvents[eventType];
+                scope = ngEl.scope();
+                for (var i=0; i<listeners.length; i++) {
+                    scope.$tryEval(listeners[i], ngEl);
+                }
+            }
+            target = target.parentNode;
+        } while (target!==null && target!==widgetEl);
+        angular.element("body").scope().$service("$updateView")();
+    }
+
+    // Register the callback only once for every event type...
+    var hasEvent = widget.customEvents && widget.customEvents[eventType];
+    if (!widget.customEvents) {
+        widget.customEvents = {};
+    }
+    widget.customEvents[eventType] = true;
+    if (!hasEvent) {
+        if (widget.events[eventType]) {
+            widget.addListener(eventType, eventCallback);
+        } else {
+            widget.addManagedListener(widget.getTargetEl(), eventType, eventCallback, widget);
+        }
+    }
+}
+
+function addEventListenerToElement(target, eventType, listener) {
+    var ngEl = angular.element(target);
+    var customEvents = ngEl.data().customEvents;
+    if (!customEvents) {
+        customEvents = {};
+        ngEl.data().customEvents = customEvents;
+    }
+    var listeners = customEvents[eventType];
+    if (!listeners) {
+        listeners = [];
+        customEvents[eventType] = listeners;
+    }
+    listeners.push(listener);
+}
+
 /**
  * A directive to bind sencha touch events like touches, activate, deactivate, ....
+ * Supports component events as well as gesture events.
  */
 angular.directive("st:event", function(expression, element) {
     var eventHandlers = {};
@@ -130,19 +233,17 @@ angular.directive("st:event", function(expression, element) {
     }
 
     var linkFn = function($updateView, element) {
-        var self = this;
-        addAfterCompileCallback(function() {
+        addAfterEval(function() {
             var widget = getWidget(element);
             for (var eventType in eventHandlers) {
-                (function(eventType) {
-                    var handler = eventHandlers[eventType];
-                    widget.addListener(eventType, function(event) {
-                        var res = self.$tryEval(handler, element);
-                        $updateView();
-                    });
-                })(eventType);
+                // If we bind the handler to the widget,
+                // we would get a memory leak when the element
+                // is removed from the dom, but the widget still exists.
+                // Therefore we are binding the handler to the dom element.
+                addEventCallbackToWidget(widget, eventType);
+                var handler = eventHandlers[eventType];
+                addEventListenerToElement(element, eventType, handler);
             }
-
         });
     };
     linkFn.$inject = ['$updateView'];
@@ -163,8 +264,10 @@ angular.directive('st:selected', function(expression) {
     }
 });
 
+var compileCounter = 0;
 
 angular.widget('div', function(compileElement) {
+    var compileIndex = compileCounter++;
     var type = compileElement.attr('type');
     if (type === 'grouped-list') {
         compileElement.children('div').attr('type', 'grouped-listitem');
@@ -187,19 +290,20 @@ angular.widget('div', function(compileElement) {
         // var component = Ext.create(type);
         if (type === 'toolbar') {
             options.el = Ext.Element.get(element[0]);
+            if (!options.dock) {
+                options.dock = 'top';
+            }
             component = new Ext.Toolbar(options);
-            // Remove the dummy component again
-            //component.remove(component.items.items[0]);
         } else if (type === 'tabpanel') {
+            //options.activeItem = 0;
+            // Don't know why: Tabpanel needs an initial item
+            // so that the tabbar is shown. Otherwise the tabbar
+            // will never show up!
+            options.items = [{title: 'test'}];
             options.el = Ext.Element.get(element[0]);
-            // TODO This is needed so that the container does not collapse.
-            // Don't know why...
-            options.items = [
-                {title : ""}
-            ];
             component = new Ext.TabPanel(options);
-            // Remove the dummy component again
-            component.remove(component.items.items[0]);
+            // remove the temporary item again...
+            component.remove(component.items.getAt(0));
         } else if (type === 'panel') {
             options.el = Ext.Element.get(element[0]);
             component = new Ext.Panel(options);
@@ -243,29 +347,31 @@ angular.widget('div', function(compileElement) {
             }
             element.wrapInner('<div class="x-list-group-items"></div>');
         }
-        addAfterCompileCallback(function() {
+        if (component) {
+            component.compileIndex = compileIndex;
+        }
+
+        addAfterEval(function() {
+            // The parent.add is executed after the compilation of angular,
+            // as only then the elements know their parents (especially for to ng:repeat).
             var parent = getWidget(element);
             if (component && parent) {
                 if (options.dock) {
                     parent.addDocked(component);
                 } else {
-                    parent.add(component);
+                    // The insert index is defined by the element order in the original document.
+                    // E.g. important if an element is added later via ng:repeat
+                    // Especially needed as angular's ng:repeat uses $onEval to create
+                    // it's children, and does not do this directly in the linking phase.
+                    var insertIndex = 0;
+                    while (insertIndex<parent.items.length && parent.items.getAt(insertIndex).compileIndex<=compileIndex) {
+                        insertIndex++;
+                    }
+                    parent.add(insertIndex, component);
                 }
-                // Set the active item initially, if we have a card layout.
-                // However, this needs to be deferred, so that event listeners
-                // have a chance to register themselves (via directives).
-                if (parent.layout && parent.layout.setActiveItem && parent.items.length === 1) {
-                    addAfterCompileCallback(function() {
-                        parent.layout.setActiveItem(component);
-                        parent.doLayout();
-                    });
-                } else {
-                    // TODO Do this only once per $eval!
-                    parent.doLayout();
-                }
+                requestLayout(parent);
             }
             element.data().stwidget = component;
-
         });
     }
 });
@@ -283,6 +389,7 @@ function replaceElementAndCopyAttributes(element, newElement) {
 
 // TODO create this for all other input components,
 // url, email, textarea, ...
+// TODO add compiler counter
 angular.widget('input', function(element) {
     var options = getOptions(element[0]);
     var name = element.attr('name');
@@ -320,10 +427,11 @@ angular.widget('input', function(element) {
         scope.$watch(name, function(val) {
             component.setValue(val);
         });
-        addAfterCompileCallback(function() {
+        // TODO same handling as for divs, see above..
+        addAfterEval(function() {
             var parent = getWidget(element);
             parent.add(component);
-            parent.doLayout();
+            requestLayout(parent);
 
             // TODO: Why does the layout contain a small space above
             // the textarea, that will be removed when the active item is switched?
@@ -331,15 +439,14 @@ angular.widget('input', function(element) {
     };
 });
 
-
 /**
- * Eventhandling for lists...
+ * Event handling for lists. Adds containertap event,
+ * and also marking the pressed item.
+ * For all other events use st:event
  */
 function addListEventHandling(listComponent) {
     var overrides = {
         itemSelector : '.x-list-item',
-
-        scroll: 'vertical',
 
         /**
          * @cfg {String} pressedCls
@@ -354,28 +461,14 @@ function addListEventHandling(listComponent) {
          */
         pressedDelay: 100,
 
-        /**
-         * @cfg {Boolean} allowDeselect Only respected if {@link #singleSelect} is true. If this is set to false,
-         * a selected item will not be deselected when tapped on, ensuring that once an item has been selected at
-         * least one item will always be selected. Defaults to allowed (true).
-         */
-        allowDeselect: true,
-
-        /**
-         * @cfg {String} triggerEvent
-         * Defaults to 'singletap'. Other valid options are 'tap'
-         */
-        triggerEvent: 'singletap',
-
-        triggerCtEvent: 'containertap',
-
         // @private
         onTap: function(e) {
             var item = this.findTargetByEvent(e);
             if (item) {
                 Ext.fly(item).removeCls(this.pressedCls);
-                if (this.onItemTap(item, e) !== false) {
-                    this.fireEvent("itemtap", this, item, e);
+                if (this.pressedTimeout) {
+                    clearTimeout(this.pressedTimeout);
+                    delete this.pressedTimeout;
                 }
             }
             else {
@@ -422,34 +515,6 @@ function addListEventHandling(listComponent) {
 
         // @private
         onContainerTap: function(e) {
-            //if (this.allowDeselect) {
-            //    this.clearSelections();
-            //}
-        },
-
-        // @private
-        onDoubleTap: function(e) {
-            var item = this.findTargetByEvent(e);
-            if (item) {
-                this.fireEvent("itemdoubletap", this, item, e);
-            }
-        },
-
-        // @private
-        onSwipe: function(e) {
-            var item = this.findTargetByEvent(e);
-            if (item) {
-                this.fireEvent("itemswipe", this, item, e);
-            }
-        },
-
-        // @private
-        onItemTap: function(item, e) {
-            if (this.pressedTimeout) {
-                clearTimeout(this.pressedTimeout);
-                delete this.pressedTimeout;
-            }
-            return true;
         },
 
         /**
@@ -466,33 +531,6 @@ function addListEventHandling(listComponent) {
     }
     listComponent.addEvents(
         /**
-         * @event itemtap
-         * Fires when a node is tapped on
-         * @param {Ext.DataView} this The DataView object
-         * @param {Ext.Element} item The item element
-         * @param {Ext.EventObject} e The event object
-         */
-        'itemtap',
-
-        /**
-         * @event itemdoubletap
-         * Fires when a node is double tapped on
-         * @param {Ext.DataView} this The DataView object
-         * @param {Ext.Element} item The item element
-         * @param {Ext.EventObject} e The event object
-         */
-        'itemdoubletap',
-
-        /**
-         * @event itemswipe
-         * Fires when a node is swipped
-         * @param {Ext.DataView} this The DataView object
-         * @param {Ext.Element} item The item element
-         * @param {Ext.EventObject} e The event object
-         */
-        'itemswipe',
-
-        /**
          * @event containertap
          * Fires when a tap occurs and it is not on a template node.
          * @param {Ext.DataView} this
@@ -504,14 +542,26 @@ function addListEventHandling(listComponent) {
     var me = listComponent;
 
     var eventHandlers = {
+        singletap: me.onTap,
         tapstart : me.onTapStart,
         tapcancel: me.onTapCancel,
         touchend : me.onTapCancel,
-        doubletap: me.onDoubleTap,
-        swipe    : me.onSwipe,
         scope    : me
     };
-    eventHandlers[me.triggerEvent] = me.onTap;
     me.mon(me.getTargetEl(), eventHandlers);
 
 }
+
+angular.Object.iff = function(self, test, trueCase, falseCase) {
+    if (test) {
+        return trueCase;
+    } else {
+        return falseCase;
+    }
+}
+
+angular.widget('@ng:if', function(expression, element) {
+    var newExpr = 'ngif in $iff(' + expression + ",[1],[])";
+    element.removeAttr('ng:if');
+    return angular.widget('@ng:repeat').call(this, newExpr, element);
+});

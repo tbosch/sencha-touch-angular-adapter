@@ -12,7 +12,7 @@ Test page during development.
 
     <script src="lib/jquery-1.6.2.js"></script>
     <script src="lib/angular-0.9.19.js"></script>
-    <script src="lib/sencha-touch-1.0.1.js"></script>
+    <script src="lib/sencha-touch-1.1.0.js"></script>
     <script src="adapter.js"></script>
 
 </head>
@@ -45,6 +45,12 @@ Test page during development.
         this.doClick = function() {
             console.log('clicked');
         }
+        this.onItemTap = function() {
+            console.log('hallo');
+        }
+        this.addItem = function() {
+            this.items.push({name: 'New Item'});
+        }
     }
 
 </script>
@@ -57,15 +63,27 @@ Test page during development.
     <input type="text" name="test">
 </div>
 
-<div type="panel" fullscreen="true" layout="card">
+<div type="tabpanel" fullscreen="true" tab-bar-dock="bottom">
     <div type="panel" title="Panel1" id="page1" st:event="beforeactivate:onActivate('page1'),deactivate:onDeactivate()">
         <div type="toolbar" dock="top">
             <div type="button" text="Page2" st:event="tap:page('page2')"></div>
             <div type="button" text="Popup" st:event="tap:showPopup('popup1')"></div>
         </div>
-        <div type="grouped-list">
+
+        <!--
+        <div type="list">
+            <div ng:repeat="item in items" st:selected="isSelected(item)">
+                {{item.name}}
+            </div>
+        </div>
+        -->
+        <div type="button" ng:repeat="item in items" text="Add Item"></div>
+
+        <div type="button" st:event="tap:addItem()" text="Add new Item"></div>
+
+        <div type="grouped-list" ng:if="!deleted">
             <div group="{{1+2}}">
-                <div>
+                <div st:event="tap:onItemTap()">
                     a1
                 </div>
                 <div>
@@ -81,11 +99,6 @@ Test page during development.
                 </div>
             </div>
 
-        </div>
-        <div type="list">
-            <div ng:repeat="item in items" st:selected="isSelected(item)">
-                {{item.name}}
-            </div>
         </div>
     </div>
     <div type="panel" title="Panel2" id="page2" st:event="activate:onActivate(),deactivate:onDeactivate()">
