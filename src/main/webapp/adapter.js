@@ -42,18 +42,23 @@ function destroyNotConnectedWidgets() {
 }
 
 var layoutRequestedContainer = {};
+var layoutRequestedContainerList = [];
 
 function requestLayout(container) {
     if (!layoutRequestedContainer[container.id]) {
-        layoutRequestedContainer[container.id] = container;
+        layoutRequestedContainer[container.id] = true;
+        layoutRequestedContainerList.push(container);
     }
 }
 
 function layoutContainer() {
-    for (var key in layoutRequestedContainer) {
-        var container = layoutRequestedContainer[key];
+    for (var i=0; i<layoutRequestedContainerList.length; i++) {
+        var container = layoutRequestedContainerList[i];
         container.doLayout();
     }
+    layoutRequestedContainer = {};
+    layoutRequestedContainerList = [];
+
 }
 
 function compilePage() {
@@ -125,19 +130,49 @@ function getWidget(element) {
     return null;
 }
 
+var activeWidgetStack = [];
+
+function removeTailFromList(list, tailStart) {
+    for (var i=0; i<list.length; i++) {
+        if (list[i] === tailStart) {
+            list.splice(i, list.length-i);
+            return list;
+        }
+    }
+}
+
+function addActivateListener(component) {
+
+    component.addListener('beforeactivate', function() {
+        removeTailFromList(activeWidgetStack, component);
+        activeWidgetStack.push(component);
+        console.log(activeWidgetStack);
+    });
+}
+
 angular.service("activate", function() {
     return function(id, animation) {
-        var element = angular.element("#" + id);
-        var widget = getWidget(element);
+        var widget;
+        if (id==='back') {
+            if (activeWidgetStack.length<2) {
+                return;
+            }
+            widget = activeWidgetStack[activeWidgetStack.length-2];
+            element = angular.element(widget.getEl().dom);
+        } else {
+            var element = angular.element("#" + id);
+            widget = getWidget(element);
+        }
+
+        var activeWidget = activeWidgetStack[activeWidgetStack.length-1];
         var parent = angular.element(element.parent());
         var parentWidget = getWidget(parent);
         parentWidget.layout.setActiveItem(widget, animation);
+
         requestLayout(parentWidget);
     }
 });
 
-// TODO replace this with st:visible attribute...
-// Or add it additionally?
 angular.service("show", function() {
     return function(id) {
         var element = angular.element("#" + id);
@@ -158,10 +193,10 @@ angular.service("hide", function() {
 function addEventCallbackToWidget(widget, eventType) {
     function eventCallback(event) {
         var target;
-        if (event.getTargetEl) {
-            target = event.getTargetEl().dom;
-        } else {
+        if (event.getTarget) {
             target = event.getTarget();
+        } else {
+            target = event.getEl().dom;
         }
         // Search from target upwards until we find
         // an element with a listener for that eventType
@@ -349,6 +384,7 @@ angular.widget('div', function(compileElement) {
         }
         if (component) {
             component.compileIndex = compileIndex;
+            addActivateListener(component);
         }
 
         addAfterEval(function() {

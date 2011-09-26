@@ -55,7 +55,7 @@ Test page during development.
 
 </script>
 <div type="panel" centered="true" hide-on-mask-tap="false" floating="true" modal="true" title="Panel1" id="popup1"
-     st:event="beforeactivate:onActivate('popup1'),deactivate:onDeactivate()">
+     st:event="show:onActivate('popup1'),hide:onDeactivate('popup1')">
     <div type="toolbar" dock="bottom">
         <div type="button" text="Hide" st:event="tap:hidePopup('popup1')"></div>
     </div>
@@ -64,10 +64,11 @@ Test page during development.
 </div>
 
 <div type="tabpanel" fullscreen="true" tab-bar-dock="bottom">
-    <div type="panel" title="Panel1" id="page1" st:event="beforeactivate:onActivate('page1'),deactivate:onDeactivate()">
+    <div type="panel" title="Panel1" id="page1" st:event="beforeactivate:onActivate('page1'),beforedeactivate:onDeactivate('page1')">
         <div type="toolbar" dock="top">
             <div type="button" text="Page2" st:event="tap:page('page2')"></div>
             <div type="button" text="Popup" st:event="tap:showPopup('popup1')"></div>
+            <div type="button" text="Back" st:event="tap:page('back')"></div>
         </div>
 
         <!--
@@ -101,9 +102,10 @@ Test page during development.
 
         </div>
     </div>
-    <div type="panel" title="Panel2" id="page2" st:event="activate:onActivate(),deactivate:onDeactivate()">
+    <div type="panel" title="Panel2" id="page2" st:event="beforeactivate:onActivate('page2'),beforedeactivate:onDeactivate('page2')">
         <div type="toolbar" dock="top">
             <div type="button" text="Page1" st:event="tap:page('page1')"></div>
+            <div type="button" text="Back" st:event="tap:page('back')"></div>
         </div>
         <input type="text" name="test">
     </div>
