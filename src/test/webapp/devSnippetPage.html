@@ -50,17 +50,23 @@ Test page during development.
         }
         this.addItem = function() {
             this.items.push({name: 'New Item'});
+        },
+        this.log = function(msg) {
+            console.log(msg);
         }
     }
 
 </script>
-<div type="panel" centered="true" hide-on-mask-tap="false" floating="true" modal="true" title="Panel1" id="popup1"
+<div type="panel" centered="true" hide-on-mask-tap="false" floating="true" scroll="true" modal="true" title="Panel1" id="popup1"
      st:event="show:onActivate('popup1'),hide:onDeactivate('popup1')">
     <div type="toolbar" dock="bottom">
         <div type="button" text="Hide" st:event="tap:hidePopup('popup1')"></div>
     </div>
-    <input type="text" name="test">
-    <input type="text" name="test">
+    <div type="button" text="Btn1"></div>
+    <div type="button" text="Btn2"></div>
+
+    <div type="textfield" name="test"></div>
+    <div type="textfield" name="test"></div>
 </div>
 
 <div type="tabpanel" fullscreen="true" tab-bar-dock="bottom">
@@ -69,6 +75,7 @@ Test page during development.
             <div type="button" text="Page2" st:event="tap:page('page2')"></div>
             <div type="button" text="Popup" st:event="tap:showPopup('popup1')"></div>
             <div type="button" text="Back" st:event="tap:page('back')"></div>
+            <div type="button" text="Sheet" st:event="tap:showPopup('sheet1')"></div>
         </div>
 
         <!--
@@ -82,7 +89,7 @@ Test page during development.
 
         <div type="button" st:event="tap:addItem()" text="Add new Item"></div>
 
-        <div type="grouped-list" ng:if="!deleted">
+        <div type="grouped-list" ng:if="!deleted" st:event="containertap:log('containertap')">
             <div group="{{1+2}}">
                 <div st:event="tap:onItemTap()">
                     a1
@@ -91,7 +98,7 @@ Test page during development.
                     a2
                 </div>
             </div>
-            <div group="'B'">
+            <div group="B">
                 <div>
                     b1
                 </div>
@@ -101,13 +108,16 @@ Test page during development.
             </div>
 
         </div>
+        <div type="sheet" id="sheet1">
+            <div type="button" dock="top" text="Button1" st:event="tap:hidePopup('sheet1')"></div>
+        </div>
     </div>
     <div type="panel" title="Panel2" id="page2" st:event="beforeactivate:onActivate('page2'),beforedeactivate:onDeactivate('page2')">
         <div type="toolbar" dock="top">
             <div type="button" text="Page1" st:event="tap:page('page1')"></div>
             <div type="button" text="Back" st:event="tap:page('back')"></div>
         </div>
-        <input type="text" name="test">
+        <div type="textfield" name="test"></div>
     </div>
 </div>
 <!--

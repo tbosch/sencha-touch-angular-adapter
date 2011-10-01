@@ -22,16 +22,16 @@ function addAfterEval(callback) {
 
 function isConnectedToDocument(element) {
     var rootElement = document.documentElement;
-    while (element!==null && element!==rootElement) {
+    while (element !== null && element !== rootElement) {
         element = element.parentNode;
     }
-    return element===rootElement;
+    return element === rootElement;
 }
 
 function destroyNotConnectedWidgets() {
     var widget;
     var widgets = Ext.ComponentMgr.all.getValues();
-    for (var i=0; i<widgets.length; i++) {
+    for (var i = 0; i < widgets.length; i++) {
         widget = widgets[i];
         if (widget.el && widget.el.dom) {
             if (!isConnectedToDocument(widget.el.dom)) {
@@ -52,7 +52,7 @@ function requestLayout(container) {
 }
 
 function layoutContainer() {
-    for (var i=0; i<layoutRequestedContainerList.length; i++) {
+    for (var i = 0; i < layoutRequestedContainerList.length; i++) {
         var container = layoutRequestedContainerList[i];
         container.doLayout();
     }
@@ -64,12 +64,14 @@ function layoutContainer() {
 function compilePage() {
     var element = $("body");
     var scope = angular.compile(element)();
+
     function refresh() {
         executeAfterEvalQueue();
         destroyNotConnectedWidgets();
         // container layout must not happen until the hierarchy is completely updated.
         layoutContainer();
     }
+
     scope.$onEval(99999, refresh);
     refresh();
 }
@@ -130,12 +132,13 @@ function getWidget(element) {
     return null;
 }
 
+// TODO remove history handling!
 var activeWidgetStack = [];
 
 function removeTailFromList(list, tailStart) {
-    for (var i=0; i<list.length; i++) {
+    for (var i = 0; i < list.length; i++) {
         if (list[i] === tailStart) {
-            list.splice(i, list.length-i);
+            list.splice(i, list.length - i);
             return list;
         }
     }
@@ -153,18 +156,18 @@ function addActivateListener(component) {
 angular.service("activate", function() {
     return function(id, animation) {
         var widget;
-        if (id==='back') {
-            if (activeWidgetStack.length<2) {
+        if (id === 'back') {
+            if (activeWidgetStack.length < 2) {
                 return;
             }
-            widget = activeWidgetStack[activeWidgetStack.length-2];
+            widget = activeWidgetStack[activeWidgetStack.length - 2];
             element = angular.element(widget.getEl().dom);
         } else {
             var element = angular.element("#" + id);
             widget = getWidget(element);
         }
 
-        var activeWidget = activeWidgetStack[activeWidgetStack.length-1];
+        var activeWidget = activeWidgetStack[activeWidgetStack.length - 1];
         var parent = angular.element(element.parent());
         var parentWidget = getWidget(parent);
         parentWidget.layout.setActiveItem(widget, animation);
@@ -209,12 +212,12 @@ function addEventCallbackToWidget(widget, eventType) {
             if (customEvents && customEvents[eventType]) {
                 var listeners = customEvents[eventType];
                 scope = ngEl.scope();
-                for (var i=0; i<listeners.length; i++) {
+                for (var i = 0; i < listeners.length; i++) {
                     scope.$tryEval(listeners[i], ngEl);
                 }
             }
             target = target.parentNode;
-        } while (target!==null && target!==widgetEl);
+        } while (target !== null && target !== widgetEl);
         angular.element("body").scope().$service("$updateView")();
     }
 
@@ -301,87 +304,223 @@ angular.directive('st:selected', function(expression) {
 
 var compileCounter = 0;
 
+// Bugfix for tabpanel
+// Don't know why: Tabpanel needs an initial item
+// so that the tabbar is shown. Otherwise the tabbar
+// will never show up!
+Ext.FixedTabPanel = Ext.extend(Ext.TabPanel, {
+    constructor : function(config) {
+        if (!config.items || config.items.length == 0) {
+            config.items = [
+                {title: 'test'}
+            ];
+            var res = Ext.FixedTabPanel.superclass.constructor.call(this, config);
+            this.remove(this.items.getAt(0));
+            return res;
+        } else {
+            return Ext.FixedTabPanel.superclass.constructor.call(this, config);
+        }
+    }
+});
+Ext.reg('tabpanel', Ext.FixedTabPanel);
+
+
+/**
+ * A component that allows custom html children
+ */
+Ext.AngularComponent = Ext.extend(Ext.Component, {
+    children: undefined,
+
+    onRender : function() {
+        // TODO use some Ext functions here instead of jquery
+        this.children = $(this.el.dom).children();
+        Ext.AngularComponent.superclass.onRender.apply(this, arguments);
+    },
+
+    initContent: function() {
+        // Move the children below the targetEl.
+        // This is needed e.g. for scrolling.
+        // Note that a container does this automatically by using
+        // the layouts for his children components.
+        var target = $(this.getTargetEl().dom);
+        target.append(this.children);
+    }
+});
+
+Ext.reg('custom', Ext.AngularComponent);
+
+
+/**
+ * Simple lists with event handling. Adds containertap event,
+ * and also marking the pressed item.
+ * For all other events use st:event
+ */
+Ext.AngularList = Ext.extend(Ext.AngularComponent, {
+    componentCls: 'x-list',
+    itemSelector : '.x-list-item',
+
+    /**
+     * @cfg {String} pressedCls
+     * A CSS class to apply to an item on the view while it is being pressed (defaults to 'x-item-pressed').
+     */
+    pressedCls : "x-item-pressed",
+
+    /**
+     * @cfg {Number} pressedDelay
+     * The amount of delay between the tapstart and the moment we add the pressedCls.
+     * Settings this to true defaults to 100ms
+     */
+    pressedDelay: 100,
+
+    initComponent : function() {
+        if (!this.scroll) {
+            this.scroll = {
+                direction: 'vertical'
+            };
+        }
+        this.addEvents(
+            /**
+             * @event containertap
+             * Fires when a tap occurs and it is not on a template node.
+             * @param {Ext.DataView} this
+             * @param {Ext.EventObject} e The raw event object
+             */
+            "containertap"
+        );
+
+        var me = this;
+        var eventHandlers = {
+            singletap: me.onTap,
+            tapstart : me.onTapStart,
+            tapcancel: me.onTapCancel,
+            touchend : me.onTapCancel,
+            scope    : me
+        };
+        me.mon(me.getTargetEl(), eventHandlers);
+        Ext.AngularList.superclass.initComponent.call(this);
+    },
+
+    // @private
+    onTap: function(e) {
+        var item = this.findTargetByEvent(e);
+        if (item) {
+            Ext.fly(item).removeCls(this.pressedCls);
+            if (this.pressedTimeout) {
+                clearTimeout(this.pressedTimeout);
+                delete this.pressedTimeout;
+            }
+        }
+        else {
+            if (this.fireEvent("containertap", this, e) !== false) {
+                this.onContainerTap(e);
+            }
+        }
+    },
+
+    // @private
+    onTapStart: function(e, t) {
+        var me = this,
+            item = this.findTargetByEvent(e);
+
+        if (item) {
+            if (me.pressedDelay) {
+                if (me.pressedTimeout) {
+                    clearTimeout(me.pressedTimeout);
+                }
+                me.pressedTimeout = setTimeout(function() {
+                    Ext.fly(item).addCls(me.pressedCls);
+                }, Ext.isNumber(me.pressedDelay) ? me.pressedDelay : 100);
+            }
+            else {
+                Ext.fly(item).addCls(me.pressedCls);
+            }
+        }
+    },
+
+    // @private
+    onTapCancel: function(e, t) {
+        var me = this,
+            item = this.findTargetByEvent(e);
+
+        if (me.pressedTimeout) {
+            clearTimeout(me.pressedTimeout);
+            delete me.pressedTimeout;
+        }
+
+        if (item) {
+            Ext.fly(item).removeCls(me.pressedCls);
+        }
+    },
+
+    // @private
+    onContainerTap: function(e) {
+    },
+
+    /**
+     * Returns the template node by the Ext.EventObject or null if it is not found.
+     * @param {Ext.EventObject} e
+     */
+    findTargetByEvent: function(e) {
+        return e.getTarget(this.itemSelector, this.getTargetEl());
+    }
+});
+
+Ext.reg('list', Ext.AngularList);
+Ext.reg('grouped-list', Ext.AngularList);
+
+
 angular.widget('div', function(compileElement) {
     var compileIndex = compileCounter++;
+    // TODO use 'xtype' here?
     var type = compileElement.attr('type');
+    var options = getOptions(compileElement[0]);
+    // TODO how to put this into the list-component??
+    // E.g. wrap ng:repeat so that it always fires an event, when it creates
+    // a new child?
+    // E.g. Do a $watch for the length of the list. If it grows,
+    // instrument the new items?
+    // Problem: When an item is deleted and one is added at the same time,
+    // the change is not recognized...
+    // Idea: Always check all children for the needed class? Is this too slow?
     if (type === 'grouped-list') {
-        compileElement.children('div').attr('type', 'grouped-listitem');
-    }
-    if (type === 'grouped-listitem') {
-        compileElement.children('div').attr('type', 'listitem');
+        var groupChilds = compileElement.children('div');
+        var groupChild, groupAttr, childs;
+        for (var i = 0; i < groupChilds.length; i++) {
+            groupChild = $(groupChilds[i]);
+            groupChild.addClass('x-list-group');
+            groupAttr = groupChild.attr('group');
+            groupChild.prepend('<h3 class="x-list-header">' + groupAttr + '</h3>');
+            childs = groupChild.children('div');
+            childs.addClass('x-list-item');
+            childs.wrapInner('<div class="x-list-item-body"></div>');
+            groupChild.wrapInner('<div class="x-list-group-items"></div>');
+        }
     }
     if (type === 'list') {
-        compileElement.children('div').attr('type', 'listitem');
+        var childs = compileElement.children('div');
+        childs.addClass('x-list-item');
+        childs.wrapInner('<div class="x-list-item-body"></div>');
     }
-    var options = getOptions(compileElement[0]);
+    if (type === 'toolbar') {
+        if (!options.dock) {
+            options.dock = 'top';
+        }
+    }
+    // TODO default für "sheet"
+    // --> Alle components sollten ein "dock" haben.
     var compileAttributes = getAttributes(compileElement[0]);
     this.descend(true);
     this.directives(true);
     return function(element) {
         var scope = this;
         var component;
-
-        // TODO why can't we use this:
-        // var component = Ext.create(type);
-        if (type === 'toolbar') {
-            options.el = Ext.Element.get(element[0]);
-            if (!options.dock) {
-                options.dock = 'top';
-            }
-            component = new Ext.Toolbar(options);
-        } else if (type === 'tabpanel') {
-            //options.activeItem = 0;
-            // Don't know why: Tabpanel needs an initial item
-            // so that the tabbar is shown. Otherwise the tabbar
-            // will never show up!
-            options.items = [{title: 'test'}];
-            options.el = Ext.Element.get(element[0]);
-            component = new Ext.TabPanel(options);
-            // remove the temporary item again...
-            component.remove(component.items.getAt(0));
-        } else if (type === 'panel') {
-            options.el = Ext.Element.get(element[0]);
-            component = new Ext.Panel(options);
-        } else if (type === 'button') {
-            options.el = Ext.Element.get(element[0]);
-            component = new Ext.Button(options);
-        } else if (type === 'custom') {
-            options.el = Ext.Element.get(element[0]);
-            component = new Ext.Component(options);
-        } else if (type === 'list' || type === 'grouped-list') {
-            element.addClass('x-list');
-            element.wrapInner('<div></div>');
-            options.scrollEl = Ext.Element.get(element.children()[0]);
-            options.el = Ext.Element.get(element[0]);
-            options.scroll = {
-                direction: 'vertical',
-                useIndicators: !this.indexBar
-            };
-            component = new Ext.Component(options);
-            addListEventHandling(component);
-            // TODO just for testing... remove this later...
-            component.addListener('itemtap', function() {
-                console.log("itemtap2");
-            });
-            component.addListener('containertap', function() {
-                console.log("containertap");
-            });
-        } else if (type === 'listitem') {
-            element.addClass('x-list-item');
-            element.wrapInner('<div class="x-list-item-body"></div>');
-        } else if (type === 'grouped-listitem') {
-            element.addClass('x-list-group');
-            element.prepend('<h3 class="x-list-header"></h3>');
-            var groupHeaderElement = element.children('h3');
-            var groupAttr = compileAttributes.group;
-            if (groupAttr) {
-                // This is a hack, as angular does not expose the
-                // compileTemplate function (like the $eval...)
-                angular.directive('ng:bind-template')(groupAttr, groupHeaderElement)
-                    .call(scope, groupHeaderElement);
-            }
-            element.wrapInner('<div class="x-list-group-items"></div>');
+        if (!type) {
+            // TODO look upwards in the dom tree for an stwidget.
+            // If we find a container, set type to "custom".
+            return;
         }
+        options.el = Ext.Element.get(element[0]);
+        component = Ext.create(options, type);
         if (component) {
             component.compileIndex = compileIndex;
             addActivateListener(component);
@@ -392,6 +531,7 @@ angular.widget('div', function(compileElement) {
             // as only then the elements know their parents (especially for to ng:repeat).
             var parent = getWidget(element);
             if (component && parent) {
+                // TODO check if the parent is container. Otherwise show an error.
                 if (options.dock) {
                     parent.addDocked(component);
                 } else {
@@ -400,7 +540,7 @@ angular.widget('div', function(compileElement) {
                     // Especially needed as angular's ng:repeat uses $onEval to create
                     // it's children, and does not do this directly in the linking phase.
                     var insertIndex = 0;
-                    while (insertIndex<parent.items.length && parent.items.getAt(insertIndex).compileIndex<=compileIndex) {
+                    while (insertIndex < parent.items.length && parent.items.getAt(insertIndex).compileIndex <= compileIndex) {
                         insertIndex++;
                     }
                     parent.add(insertIndex, component);
@@ -413,180 +553,6 @@ angular.widget('div', function(compileElement) {
 });
 
 
-function replaceElementAndCopyAttributes(element, newElement) {
-    var attrs = getAttributes(element[0]);
-    for (var key in attrs) {
-        if (key !== 'type') {
-            newElement.attr(key, attrs[key]);
-        }
-    }
-    element.replaceWith(newElement);
-}
-
-// TODO create this for all other input components,
-// url, email, textarea, ...
-// TODO add compiler counter
-angular.widget('input', function(element) {
-    var options = getOptions(element[0]);
-    var name = element.attr('name');
-    this.descend(true);
-    this.directives(true);
-    return function(element) {
-        var scope = this;
-        var component;
-
-        // TODO why can't we use this:
-        // var component = Ext.create(type);
-        // The Text-component uses a render-template.
-        // So we use it, but replace the input field
-        // with the angular field.
-        component = new Ext.form.Text(options);
-        var oldAfterRender = component.afterRender;
-
-        component.afterRender = function() {
-            // TODO include this in the real rendering,
-            // so we do not create input elements for nothing...
-            var createdInput = angular.element(this.el.dom).find('input');
-            replaceElementAndCopyAttributes(createdInput, element);
-            // replace the internal field-element.
-            this.fieldEl = Ext.get(element[0]);
-            return oldAfterRender.apply(this, arguments);
-        };
-        function dataChanged() {
-            scope.$set(name, component.getValue());
-            scope.$root.$service("$updateView")();
-
-        }
-
-        component.addListener('keyUp', dataChanged);
-        component.addListener('change', dataChanged);
-        scope.$watch(name, function(val) {
-            component.setValue(val);
-        });
-        // TODO same handling as for divs, see above..
-        addAfterEval(function() {
-            var parent = getWidget(element);
-            parent.add(component);
-            requestLayout(parent);
-
-            // TODO: Why does the layout contain a small space above
-            // the textarea, that will be removed when the active item is switched?
-        });
-    };
-});
-
-/**
- * Event handling for lists. Adds containertap event,
- * and also marking the pressed item.
- * For all other events use st:event
- */
-function addListEventHandling(listComponent) {
-    var overrides = {
-        itemSelector : '.x-list-item',
-
-        /**
-         * @cfg {String} pressedCls
-         * A CSS class to apply to an item on the view while it is being pressed (defaults to 'x-item-pressed').
-         */
-        pressedCls : "x-item-pressed",
-
-        /**
-         * @cfg {Number} pressedDelay
-         * The amount of delay between the tapstart and the moment we add the pressedCls.
-         * Settings this to true defaults to 100ms
-         */
-        pressedDelay: 100,
-
-        // @private
-        onTap: function(e) {
-            var item = this.findTargetByEvent(e);
-            if (item) {
-                Ext.fly(item).removeCls(this.pressedCls);
-                if (this.pressedTimeout) {
-                    clearTimeout(this.pressedTimeout);
-                    delete this.pressedTimeout;
-                }
-            }
-            else {
-                if (this.fireEvent("containertap", this, e) !== false) {
-                    this.onContainerTap(e);
-                }
-            }
-        },
-
-        // @private
-        onTapStart: function(e, t) {
-            var me = this,
-                item = this.findTargetByEvent(e);
-
-            if (item) {
-                if (me.pressedDelay) {
-                    if (me.pressedTimeout) {
-                        clearTimeout(me.pressedTimeout);
-                    }
-                    me.pressedTimeout = setTimeout(function() {
-                        Ext.fly(item).addCls(me.pressedCls);
-                    }, Ext.isNumber(me.pressedDelay) ? me.pressedDelay : 100);
-                }
-                else {
-                    Ext.fly(item).addCls(me.pressedCls);
-                }
-            }
-        },
-
-        // @private
-        onTapCancel: function(e, t) {
-            var me = this,
-                item = this.findTargetByEvent(e);
-
-            if (me.pressedTimeout) {
-                clearTimeout(me.pressedTimeout);
-                delete me.pressedTimeout;
-            }
-
-            if (item) {
-                Ext.fly(item).removeCls(me.pressedCls);
-            }
-        },
-
-        // @private
-        onContainerTap: function(e) {
-        },
-
-        /**
-         * Returns the template node by the Ext.EventObject or null if it is not found.
-         * @param {Ext.EventObject} e
-         */
-        findTargetByEvent: function(e) {
-            return e.getTarget(this.itemSelector, this.getTargetEl());
-        }
-    };
-    // TODO use some utility function vom Ext.Js for this...
-    for (var key in overrides) {
-        listComponent[key] = overrides[key];
-    }
-    listComponent.addEvents(
-        /**
-         * @event containertap
-         * Fires when a tap occurs and it is not on a template node.
-         * @param {Ext.DataView} this
-         * @param {Ext.EventObject} e The raw event object
-         */
-        "containertap"
-    );
-
-    var me = listComponent;
-
-    var eventHandlers = {
-        singletap: me.onTap,
-        tapstart : me.onTapStart,
-        tapcancel: me.onTapCancel,
-        touchend : me.onTapCancel,
-        scope    : me
-    };
-    me.mon(me.getTargetEl(), eventHandlers);
-
-}
 
 angular.Object.iff = function(self, test, trueCase, falseCase) {
     if (test) {
