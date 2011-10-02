@@ -54,8 +54,7 @@
             Normal List:
         </p>
     </div>
-
-    <div st:xtype="list">
+    <div st:xtype="list" scroll="false">
         <div ng:repeat="item in items" st:selected="isSelected(item)" st:event="tap:itemTap(item)">
             {{item.name}}
         </div>
@@ -68,7 +67,7 @@
         </p>
     </div>
 
-    <div st:xtype="grouped-list" st:event="containertap:containerTap()">
+    <div st:xtype="grouped-list" scroll="false">
         <div group="{{group.key}}" ng:repeat="group in groups()">
             <div ng:repeat="item in group.items" st:event="tap:itemTap(item)" st:selected="isSelected(item)">
                 {{item.name}}

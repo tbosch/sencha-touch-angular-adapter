@@ -14,20 +14,6 @@ define(['ext', 'stng/util', 'stng/customComponent'], function(Ext, util) {
      */
     Ext.AngularBaseList = Ext.extend(Ext.AngularComponent, {
         componentCls: 'x-list',
-        itemSelector : '.x-list-item',
-
-        /**
-         * @cfg {String} pressedCls
-         * A CSS class to apply to an item on the view while it is being pressed (defaults to 'x-item-pressed').
-         */
-        pressedCls : "x-item-pressed",
-
-        /**
-         * @cfg {Number} pressedDelay
-         * The amount of delay between the tapstart and the moment we add the pressedCls.
-         * Settings this to true defaults to 100ms
-         */
-        pressedDelay: 100,
 
         initComponent : function() {
             if (this.scroll!==false) {
@@ -35,90 +21,7 @@ define(['ext', 'stng/util', 'stng/customComponent'], function(Ext, util) {
                     direction: 'vertical'
                 };
             }
-            this.addEvents(
-                /**
-                 * @event containertap
-                 * Fires when a tap occurs and it is not on a template node.
-                 * @param {Ext.DataView} this
-                 * @param {Ext.EventObject} e The raw event object
-                 */
-                "containertap"
-            );
-
-            var me = this;
-            var eventHandlers = {
-                singletap: me.onTap,
-                tapstart : me.onTapStart,
-                tapcancel: me.onTapCancel,
-                touchend : me.onTapCancel,
-                scope    : me
-            };
-            me.mon(me.getTargetEl(), eventHandlers);
             Ext.AngularBaseList.superclass.initComponent.call(this);
-        },
-
-        // @private
-        onTap: function(e) {
-            var item = this.findTargetByEvent(e);
-            if (item) {
-                Ext.fly(item).removeCls(this.pressedCls);
-                if (this.pressedTimeout) {
-                    clearTimeout(this.pressedTimeout);
-                    delete this.pressedTimeout;
-                }
-            }
-            else {
-                if (this.fireEvent("containertap", this, e) !== false) {
-                    this.onContainerTap(e);
-                }
-            }
-        },
-
-        // @private
-        onTapStart: function(e) {
-            var me = this,
-                item = this.findTargetByEvent(e);
-
-            if (item) {
-                if (me.pressedDelay) {
-                    if (me.pressedTimeout) {
-                        clearTimeout(me.pressedTimeout);
-                    }
-                    me.pressedTimeout = setTimeout(function() {
-                        Ext.fly(item).addCls(me.pressedCls);
-                    }, Ext.isNumber(me.pressedDelay) ? me.pressedDelay : 100);
-                }
-                else {
-                    Ext.fly(item).addCls(me.pressedCls);
-                }
-            }
-        },
-
-        // @private
-        onTapCancel: function(e) {
-            var me = this,
-                item = this.findTargetByEvent(e);
-
-            if (me.pressedTimeout) {
-                clearTimeout(me.pressedTimeout);
-                delete me.pressedTimeout;
-            }
-
-            if (item) {
-                Ext.fly(item).removeCls(me.pressedCls);
-            }
-        },
-
-        // @private
-        onContainerTap: function() {
-        },
-
-        /**
-         * Returns the template node by the Ext.EventObject or null if it is not found.
-         * @param {Ext.EventObject} e
-         */
-        findTargetByEvent: function(e) {
-            return e.getTarget(this.itemSelector, this.getTargetEl());
         }
     });
 
