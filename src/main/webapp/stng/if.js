@@ -10,7 +10,7 @@ define(['angular'], function(angular) {
         } else {
             return falseCase;
         }
-    }
+    };
 
     angular.widget('@ng:if', function(expression, element) {
         var newExpr = 'ngif in $iff(' + expression + ",[1],[])";

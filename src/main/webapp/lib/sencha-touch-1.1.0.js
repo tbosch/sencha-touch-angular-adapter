@@ -22458,7 +22458,6 @@ Ext.apply(Ext, {
 
                 Ext.onReady(function() {
                     var args = arguments;
-
                     if (config.fullscreen !== false) {
                         Ext.Viewport.init(function() {
                             config.onReady.apply(me, args);

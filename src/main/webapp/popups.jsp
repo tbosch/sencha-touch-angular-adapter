@@ -1,22 +1,3 @@
-<!DOCTYPE html>
-<html xmlns:ng="http://angularjs.org" xmlns:stng="http://sencha-touch-angular.org">
-<!--
-Test page during development.
--->
-<head>
-    <title>MobileToys</title>
-    <script>parent.instrument && parent.instrument(window);</script>
-    <meta name="viewport" content="width=device-width; initial-scale=1.0; maximum-scale=1.0; user-scalable=0;"/>
-
-    <link rel="stylesheet" href="lib/sencha-touch.css"/>
-
-    <script src="lib/jquery-1.6.2.js"></script>
-    <script src="lib/angular-0.9.19.js"></script>
-    <script src="lib/sencha-touch-1.1.0.js"></script>
-    <script src="adapter.js"></script>
-
-</head>
-<body ng:controller="TestController">
 <script>
     function TestController(activate, show, hide) {
         this.counter = 0;
@@ -71,7 +52,6 @@ Test page during development.
     <div st:xtype="textfield" name="test"></div>
 </div>
 
-<div st:xtype="tabpanel" fullscreen="true" tab-bar-dock="bottom">
     <div st:xtype="panel" title="Panel1" id="page1" st:event="beforeactivate:onActivate('page1'),beforedeactivate:onDeactivate('page1')">
         <div st:xtype="toolbar" dock="top">
             <div st:xtype="button" text="Page2" st:event="tap:page('page2')"></div>
@@ -120,77 +100,3 @@ Test page during development.
         </div>
         <div st:xtype="textfield" name="test"></div>
     </div>
-</div>
-<!--
-<script>
-    setTimeout(function() {
-
-        Ext.regModel('Contact', {
-            fields: ['firstName', 'lastName']
-        });
-
-        var oldStore = new Ext.data.JsonStore({
-            model  : 'Contact',
-            sorters: 'lastName',
-
-            getGroupString : function(record) {
-                return record.get('lastName')[0];
-            },
-
-            data: [
-                {firstName: 'Tommy',   lastName: 'Maintz'},
-                {firstName: 'Rob',     lastName: 'Dougan'}
-            ]
-        });
-        console.log(oldStore.getGroups());
-        var records = [
-                        {id:'1', data: {firstName: 'AAJay',     lastName: 'AARobinson'}},
-                        {id: '2', data: {firstName: 'BBJay',     lastName: 'BBRobinson'}}
-                    ];
-        var store = {
-            events: true,
-            on: function() {
-
-            },
-            un: function() {
-
-            },
-            isLoading: function() {
-                return false;
-            },
-            getRange: function() {
-                return records;
-            },
-            getGroups: function() {
-                return [
-                    {name: 'AA', children: [
-                        records[0]
-                    ]},
-                    {name: 'BB', children: [
-                        records[1]
-                    ]}
-
-                ];
-            },
-            getAt: function(index) {
-                return records[index];
-            }
-
-        };
-
-        var list = new Ext.List({
-            fullscreen: true,
-
-            itemTpl : '{firstName} {lastName}',
-            grouped : true,
-            indexBar: true,
-
-            store: oldStore
-        });
-        list.show();
-    }, 1000);
-</script>
--->
-
-</body>
-</html>
