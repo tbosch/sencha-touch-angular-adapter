@@ -30,7 +30,7 @@ define(['ext', 'stng/util', 'stng/customComponent'], function(Ext, util) {
         pressedDelay: 100,
 
         initComponent : function() {
-            if (!this.scroll) {
+            if (this.scroll!==false) {
                 this.scroll = {
                     direction: 'vertical'
                 };
@@ -145,12 +145,11 @@ define(['ext', 'stng/util', 'stng/customComponent'], function(Ext, util) {
                 groupChild.addClass('x-list-group');
                 groupAttr = groupChild.attr('group');
                 groupChild.removeAttr('group');
-                groupChild.prepend('<h3 class="x-list-header">' + groupAttr + '</h3>');
                 childs = groupChild.children('div');
                 childs.addClass('x-list-item');
-
                 wrapInner(childs, $('<div class="x-list-item-body"></div>'));
                 wrapInner(groupChild, $('<div class="x-list-group-items"></div>'));
+                groupChild.prepend('<h3 class="x-list-header">' + groupAttr + '</h3>');
             }
         }
 

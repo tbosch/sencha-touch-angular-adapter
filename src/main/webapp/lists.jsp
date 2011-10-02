@@ -25,10 +25,10 @@
             this.items.push({name: this.insertText});
         }
         this.containerTap = function() {
-            alert('tapped on container');
+            this.items = [];
         }
         this.itemTap = function(item) {
-            alert('tapped on item '+item.name);
+            item.name += ' tapped';
         }
         this.groups = function() {
             return groupBy(this.items, function(item) {

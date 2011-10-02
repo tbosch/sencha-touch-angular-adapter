@@ -87,7 +87,7 @@ define(['angular'], function(angular) {
     }
 
     function layoutWithParents(widget) {
-        while (widget && counter>=0) {
+        while (widget) {
             if (widget.doComponentLayout) {
                 widget.doComponentLayout();
             }
