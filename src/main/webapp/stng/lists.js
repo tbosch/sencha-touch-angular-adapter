@@ -28,7 +28,6 @@ define(['ext', 'stng/util', 'stng/customComponent'], function(Ext, util) {
     Ext.AngularList = Ext.extend(Ext.AngularBaseList, {
         initContent: function() {
             Ext.AngularList.superclass.initContent.call(this);
-            // TODO use senchas tools for this
             var childs = $(this.getTargetEl().dom).children();
             childs.addClass('x-list-item');
             wrapInner(childs, $('<div class="x-list-item-body"></div>'));
@@ -40,7 +39,6 @@ define(['ext', 'stng/util', 'stng/customComponent'], function(Ext, util) {
     Ext.AngularGroupedList = Ext.extend(Ext.AngularBaseList, {
         initContent: function() {
             Ext.AngularGroupedList.superclass.initContent.call(this);
-            // TODO use senchas tools for this
             var groupChilds = $(this.getTargetEl().dom).children();
             var groupChild, groupAttr, childs;
             for (var i = 0; i < groupChilds.length; i++) {

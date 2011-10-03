@@ -8,7 +8,6 @@ define(['ext', 'stng/util'], function(Ext, util) {
         children: undefined,
 
         onRender : function() {
-            // TODO use some Ext functions here instead of jquery
             this.children = $(this.el.dom).children();
             Ext.AngularComponent.superclass.onRender.apply(this, arguments);
         },

@@ -10,6 +10,7 @@ define([
     'stng/repeat',
     'stng/setup',
     'stng/events',
+    'stng/waitDialog',
     'stng/input'
 ], function(angular, util, compileIntegration) {
     return {

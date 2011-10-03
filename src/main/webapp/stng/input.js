@@ -40,13 +40,23 @@ define(['angular'], function(angular) {
         if (this.name) {
             var self = this;
             var scope = angular.element(self.el.dom).scope();
-
-            scope.$watch(this.name, function(newValue) {
-                setValue(self, newValue);
+            var valueInScope;
+            scope.$onEval(-1000, function() {
+                var newValue = scope.$get(self.name);
+                if (valueInScope!==newValue) {
+                    setValue(self, newValue);
+                    valueInScope = newValue;
+                }
             });
             addChangeListener(this, function() {
-                console.log("hallo"+getValue(self));
-                scope.$set(self.name, getValue(self));
+                var value = getValue(self);
+                // This is needed for inputtexts in the following case:
+                // 1. value in scope: value0
+                // 2. value in ui is set to a value1 with <enter>-key bound to a controller action
+                // 3. controller action does something and resets the value to value0
+                // This case is not detected by the usual $watch logic!
+                valueInScope = value;
+                scope.$set(self.name, value);
                 scope.$service("$updateView")();
             });
         }

@@ -7,8 +7,12 @@ define(['angular', 'stng/util'], function(angular, util) {
             var element = $(document.getElementById(id));
             widget = util.stWidget(element);
             var parentWidget = widget.ownerCt;
-            parentWidget.layout.setActiveItem(widget, animation);
-            parentWidget.doLayout();
+            if (parentWidget.setActiveItem) {
+                parentWidget.setActiveItem(widget, animation);
+            } else {
+                parentWidget.layout.setActiveItem(widget, animation);
+                parentWidget.doLayout();
+            }
         }
     });
 
