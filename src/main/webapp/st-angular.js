@@ -9,7 +9,8 @@ define([
     'stng/if',
     'stng/repeat',
     'stng/setup',
-    'stng/events'
+    'stng/events',
+    'stng/input'
 ], function(angular, util, compileIntegration) {
     return {
     }

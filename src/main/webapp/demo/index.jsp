@@ -23,6 +23,7 @@
     <jsp:include page="toolbars.jsp"></jsp:include>
     <jsp:include page="popups.jsp"></jsp:include>
     <jsp:include page="carousel.jsp"></jsp:include>
+    <jsp:include page="form.jsp"></jsp:include>
 </div>
 
 <div st:xtype="sheet" id="sheet1" ng:controller="PopupController">
