@@ -21,6 +21,7 @@
 <div st:xtype="tabpanel" tab-bar-dock="bottom" id="main" fullscreen="true">
     <jsp:include page="lists.jsp"></jsp:include>
     <jsp:include page="toolbars.jsp"></jsp:include>
+    <jsp:include page="popups.jsp"></jsp:include>
 </div>
 
 </body>

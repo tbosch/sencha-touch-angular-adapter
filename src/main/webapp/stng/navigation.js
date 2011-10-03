@@ -1,7 +1,7 @@
 define(['angular', 'stng/util'], function(angular, util) {
     var $ = util.jqLite;
 
-    angular.service("activate", function() {
+    angular.service("$activate", function() {
         return function(id, animation) {
             var widget;
             var element = $(document.getElementById(id));
@@ -12,7 +12,7 @@ define(['angular', 'stng/util'], function(angular, util) {
         }
     });
 
-    angular.service("show", function() {
+    angular.service("$show", function() {
         return function(id) {
             var element = $(document.getElementById(id));
             var widget = util.stWidget(element);
@@ -20,7 +20,7 @@ define(['angular', 'stng/util'], function(angular, util) {
         }
     });
 
-    angular.service("hide", function() {
+    angular.service("$hide", function() {
         return function(id) {
             var element = $(document.getElementById(id));
             var widget = util.stWidget(element);

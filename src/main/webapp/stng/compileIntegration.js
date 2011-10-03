@@ -52,6 +52,7 @@ define(['angular', 'ext', 'stng/util'], function(angular, Ext, util) {
                 return res;
             }
             var component = Ext.create(options, type);
+            util.stWidget(element, component);
             component.compileIndex = compileIndex;
             var parent = currentCompileParent;
             if (!parent) {
