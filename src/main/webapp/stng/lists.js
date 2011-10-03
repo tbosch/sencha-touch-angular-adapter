@@ -29,7 +29,7 @@ define(['ext', 'stng/util', 'stng/customComponent'], function(Ext, util) {
         initContent: function() {
             Ext.AngularList.superclass.initContent.call(this);
             // TODO use senchas tools for this
-            var childs = $(this.getTargetEl().dom).children('div');
+            var childs = $(this.getTargetEl().dom).children();
             childs.addClass('x-list-item');
             wrapInner(childs, $('<div class="x-list-item-body"></div>'));
         }
@@ -41,18 +41,20 @@ define(['ext', 'stng/util', 'stng/customComponent'], function(Ext, util) {
         initContent: function() {
             Ext.AngularGroupedList.superclass.initContent.call(this);
             // TODO use senchas tools for this
-            var groupChilds = $(this.getTargetEl().dom).children('div');
+            var groupChilds = $(this.getTargetEl().dom).children();
             var groupChild, groupAttr, childs;
             for (var i = 0; i < groupChilds.length; i++) {
                 groupChild = $(groupChilds[i]);
-                groupChild.addClass('x-list-group');
-                groupAttr = groupChild.attr('group');
-                groupChild.removeAttr('group');
-                childs = groupChild.children('div');
-                childs.addClass('x-list-item');
-                wrapInner(childs, $('<div class="x-list-item-body"></div>'));
-                wrapInner(groupChild, $('<div class="x-list-group-items"></div>'));
-                groupChild.prepend('<h3 class="x-list-header">' + groupAttr + '</h3>');
+                if (groupChild[0].nodeName==='DIV') {
+                    groupChild.addClass('x-list-group');
+                    groupAttr = groupChild.attr('group');
+                    groupChild.removeAttr('group');
+                    childs = groupChild.children('div');
+                    childs.addClass('x-list-item');
+                    wrapInner(childs, $('<div class="x-list-item-body"></div>'));
+                    wrapInner(groupChild, $('<div class="x-list-group-items"></div>'));
+                    groupChild.prepend('<h3 class="x-list-header">' + groupAttr + '</h3>');
+                }
             }
         }
 

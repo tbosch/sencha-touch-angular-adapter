@@ -1,4 +1,4 @@
-define(['angular', 'stng/util', 'stng/compileIntegration'], function(angular, util, compileIntegration) {
+define(['angular', 'stng/util'], function(angular, util) {
     var $ = util.jqLite;
 
     function addEventCallbackToWidget(widget, eventType) {
@@ -26,7 +26,9 @@ define(['angular', 'stng/util', 'stng/compileIntegration'], function(angular, ut
                 }
                 target = target.parentNode;
             } while (target !== null && target !== widgetEl);
-            lastScope.$service("$updateView")();
+            if (lastScope) {
+                lastScope.$service("$updateView")();
+            }
         }
 
         // Register the callback only once for every event type...
@@ -78,18 +80,16 @@ define(['angular', 'stng/util', 'stng/compileIntegration'], function(angular, ut
         }
 
         var linkFn = function($updateView, element) {
-            compileIntegration.afterEval(function() {
-                var widget = util.nearestStWidget(element);
-                for (var eventType in eventHandlers) {
-                    // If we bind the handler to the widget,
-                    // we would get a memory leak when the element
-                    // is removed from the dom, but the widget still exists.
-                    // Therefore we are binding the handler to the dom element.
-                    addEventCallbackToWidget(widget, eventType);
-                    var handler = eventHandlers[eventType];
-                    addEventListenerToElement(element, eventType, handler);
-                }
-            });
+            var widget = util.nearestStWidget(element);
+            for (var eventType in eventHandlers) {
+                // If we bind the handler to the widget,
+                // we would get a memory leak when the element
+                // is removed from the dom, but the widget still exists.
+                // Therefore we are binding the handler to the dom element.
+                addEventCallbackToWidget(widget, eventType);
+                var handler = eventHandlers[eventType];
+                addEventListenerToElement(element, eventType, handler);
+            }
         };
         linkFn.$inject = ['$updateView'];
         return linkFn;

@@ -9,7 +9,6 @@ define([
     'stng/if',
     'stng/repeat',
     'stng/setup',
-    'stng/tabbedPanel',
     'stng/events'
 ], function(angular, util, compileIntegration) {
     return {

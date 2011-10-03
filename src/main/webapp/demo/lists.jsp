@@ -36,7 +36,7 @@
             });
         }
         this.isSelected = function(item) {
-            return item.name == this.selectedName;
+            return item && item.name == this.selectedName;
         }
     }
 
