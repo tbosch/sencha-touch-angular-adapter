@@ -24,6 +24,9 @@
         this.addItem = function() {
             this.items.push({name: this.insertText});
         }
+        this.clearItems = function() {
+            this.items = [];
+        }
         this.containerTap = function() {
             this.items = [];
         }
@@ -48,12 +51,14 @@
     <div st:xtype="panel" layout.type="hbox" layout.align="stretch">
         <div st:xtype="textfield" name="insertText" flex="1"></div>
         <div st:xtype="button" text="Add" st:event="tap:addItem()"></div>
+        <div st:xtype="button" text="Clear" st:event="tap:clearItems()"></div>
     </div>
     <div st:xtype="custom" >
         <p>
             Normal List:
         </p>
     </div>
+
     <div st:xtype="list" scroll="false">
         <div ng:repeat="item in items" st:selected="isSelected(item)" st:event="tap:itemTap(item)">
             {{item.name}}

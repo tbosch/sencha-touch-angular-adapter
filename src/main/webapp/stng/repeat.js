@@ -72,21 +72,11 @@ define(['angular', 'stng/util'], function(angular, util) {
                 // shrink children
                 while (children.length > index) {
                     // Sencha Integration: Destroy widgets
-                    // TODO
                     var child = children.pop();
                     var childElement = child.$element;
-
+                    util.destroyWidgetsUnder(childElement);
                     childElement.remove();
-
                 }
-                // TODO Should we update the layout of the current widget?
-                // This should not be done if we are in the rendering phase...
-                /*
-                var widget = util.nearestStWidget(iterStartElement);
-                if (widget) {
-                    widget.doComponentLayout();
-                }
-                */
             }, iterStartElement);
         };
     });

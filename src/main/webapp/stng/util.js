@@ -98,8 +98,21 @@ define(['angular'], function(angular) {
         }
     }
 
+    function destroyWidgetsUnder(element) {
+        var widget = stWidget(element);
+        var children = element.children();
+        for (var i=0; i<children.length; i++) {
+            destroyWidgetsUnder(angular.element(children[i]));
+        }
+        if (widget) {
+            widget.destroy();
+            stWidget(element, undefined);
+        }
+    }
+
     return {
         layoutWithParents: layoutWithParents,
+        destroyWidgetsUnder: destroyWidgetsUnder,
         stWidget: stWidget,
         nearestStWidget: nearestStWidget,
         stOptions: stOptions,
