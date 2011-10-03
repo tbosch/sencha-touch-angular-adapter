@@ -22,7 +22,20 @@
     <jsp:include page="lists.jsp"></jsp:include>
     <jsp:include page="toolbars.jsp"></jsp:include>
     <jsp:include page="popups.jsp"></jsp:include>
+    <jsp:include page="carousel.jsp"></jsp:include>
 </div>
+
+<div st:xtype="sheet" id="sheet1" ng:controller="PopupController">
+    <div st:xtype="button" dock="top" text="Button1" st:event="tap:hide('sheet1')"></div>
+</div>
+
+<div st:xtype="panel" title="Popup1" id="popup1" floating="true" centered="true" modal="true" ng:controller="PopupController">
+    <div st:xtype="custom">
+        Hello
+    </div>
+    <div st:xtype="button" text="Hide" st:event="tap:hide('popup1')"></div>
+</div>
+
 
 </body>
 </html>
