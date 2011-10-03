@@ -50,6 +50,4 @@ var requirejs, require, define;
         }
 
     }
-
-    require.ready = $;
 })(window);
