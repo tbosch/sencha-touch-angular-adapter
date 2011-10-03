@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.opitzconsulting.html5</groupId>
     <artifactId>sencha-touch-angular-adapter</artifactId>
-    <version>0.1.0</version>
+    <version>0.9.0</version>
     <name>Sencha Touch Angular Adapter</name>
     <packaging>war</packaging>
     <description>Adapter for using sencha touch with angular</description>
@@ -76,7 +76,7 @@
                                     <goal>optimize</goal>
                                 </goals>
                                 <configuration>
-                                    <jsOptimizer>${jsOptimizer}</jsOptimizer>
+                                    <jsOptimizer>none</jsOptimizer>
                                     <optimizedFileNameSuffix>-${version}</optimizedFileNameSuffix>
                                     <optimizeSourceDir>${basedir}/src/main/webapp</optimizeSourceDir>
                                     <optimizeBuildDir>${basedir}/target/requirejs/build</optimizeBuildDir>
@@ -84,10 +84,10 @@
                                     <skipModuleInsertion>true</skipModuleInsertion>
                                     <modules>
                                         <module>
-                                            <name>jquery-mobile-angular-adapter</name>
+                                            <name>sencha-touch-angular-adapter</name>
                                             <include>
                                                 <entry>lib/simple-require</entry>
-                                                <entry>jqm-angular</entry>
+                                                <entry>st-angular</entry>
                                             </include>
                                         </module>
                                     </modules>
@@ -95,6 +95,27 @@
                                         <startFile>${basedir}/src/main/build/header.js</startFile>
                                         <endFile>${basedir}/src/main/build/footer.js</endFile>
                                     </wrap>
+                                </configuration>
+                            </execution>
+
+                            <execution>
+                                <id>minify</id>
+                                <phase>prepare-package</phase>
+                                <goals>
+                                    <goal>optimize</goal>
+                                </goals>
+                                <configuration>
+                                    <jsOptimizer>${jsOptimizer}</jsOptimizer>
+                                    <optimizedFileNameSuffix>.min</optimizedFileNameSuffix>
+                                    <optimizeSourceDir>${basedir}/compiled</optimizeSourceDir>
+                                    <optimizeBuildDir>${basedir}/target/requirejs/optimize</optimizeBuildDir>
+                                    <optimizeOutputDir>${basedir}/compiled</optimizeOutputDir>
+                                    <skipModuleInsertion>true</skipModuleInsertion>
+                                    <modules>
+                                        <module>
+                                            <name>sencha-touch-angular-adapter-${version}</name>
+                                        </module>
+                                    </modules>
                                 </configuration>
                             </execution>
                         </executions>
@@ -128,7 +149,7 @@
                                     <optimizeSourceDir>${basedir}/src/main/webapp</optimizeSourceDir>
                                     <modules>
                                         <module>
-                                            <name>jqm-angular</name>
+                                            <name>st-angular</name>
                                         </module>
                                     </modules>
                                 </configuration>
