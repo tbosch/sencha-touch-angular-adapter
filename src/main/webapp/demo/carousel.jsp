@@ -1,12 +1,12 @@
-<div st:xtype="carousel" id="carousel" title="Carousel">
-        <div st:xtype="custom">
+<st:carousel id="carousel" title="Carousel">
+        <st:custom>
             Page1
-        </div>
-        <div st:xtype="custom">
+        </st:custom>
+        <st:custom>
             Page2
-        </div>
-        <div st:xtype="custom">
+        </st:custom>
+        <st:custom>
             Page3
-        </div>
-</div>
+        </st:custom>
+</st:carousel>
 

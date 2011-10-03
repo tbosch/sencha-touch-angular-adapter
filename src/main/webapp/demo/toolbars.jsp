@@ -6,21 +6,21 @@
     }
 </script>
 
-<div st:xtype="panel" title="Toolbars" id="toolbars" ng:controller="ToolbarsController" scroll="true">
-    <div st:xtype="toolbar" dock="top">
-        <div st:xtype="button" text="Clickme Top" st:event="tap:clicked()"></div>
-    </div>
-    <div st:type="panel">
-        <div st:xtype="button" text="hallo" flex="1">
-        </div>
-        <div st:xtype="custom">
+<st:panel title="Toolbars" id="toolbars" ng:controller="ToolbarsController" scroll="true">
+    <st:toolbar dock="top">
+        <st:button text="Clickme Top" st:event="tap:clicked()"></st:button>
+    </st:toolbar>
+    <st:panel>
+        <st:button text="hallo" flex="1">
+        </st:button>
+        <st:custom>
             Hallo
-        </div>
-        <div st:xtype="custom" flex="1">
+        </st:custom>
+        <st:custom flex="1">
             Hallo2
-        </div>
-    </div>
-    <div st:xtype="toolbar" dock="bottom">
-        <div st:xtype="button" text="Clickme Bottom" st:event="tap:clicked()"></div>
-    </div>
-</div>
+        </st:custom>
+    </st:panel>
+    <st:toolbar dock="bottom">
+        <st:button text="Clickme Bottom" st:event="tap:clicked()"></st:button>
+    </st:toolbar>
+</st:panel>

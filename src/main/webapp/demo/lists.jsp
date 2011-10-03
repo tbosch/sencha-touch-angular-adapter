@@ -45,38 +45,38 @@
 
 </script>
 
-<div st:xtype="panel" title="Lists" id="lists" ng:controller="ListController" scroll="true">
+<st:panel title="Lists" id="lists" ng:controller="ListController" scroll="true">
 
-    <div st:xtype="textfield" name="selectedName" label="Selected text"></div>
-    <div st:xtype="panel" layout.type="hbox" layout.align="stretch">
-        <div st:xtype="textfield" name="insertText" flex="1"></div>
-        <div st:xtype="button" text="Add" st:event="tap:addItem()"></div>
-        <div st:xtype="button" text="Clear" st:event="tap:clearItems()"></div>
-    </div>
-    <div st:xtype="custom" >
+    <st:textfield name="selectedName" label="Selected text"></st:textfield>
+    <st:panel layout.type="hbox" layout.align="stretch">
+        <st:textfield name="insertText" flex="1"></st:textfield>
+        <st:button text="Add" st:event="tap:addItem()"></st:button>
+        <st:button text="Clear" st:event="tap:clearItems()"></st:button>
+    </st:panel>
+    <st:custom >
         <p>
             Normal List:
         </p>
-    </div>
+    </st:custom>
 
-    <div st:xtype="list" scroll="false">
+    <st:list scroll="false">
         <div ng:repeat="item in items" st:selected="isSelected(item)" st:event="tap:itemTap(item)">
             {{item.name}}
         </div>
-    </div>
+    </st:list>
 
 
-    <div st:xtype="custom">
+    <st:custom>
         <p>
             Grouped List:
         </p>
-    </div>
+    </st:custom>
 
-    <div st:xtype="grouped-list" scroll="false">
+    <st:grouped-list scroll="false">
         <div group="{{group.key}}" ng:repeat="group in groups()">
             <div ng:repeat="item in group.items" st:event="tap:itemTap(item)" st:selected="isSelected(item)">
                 {{item.name}}
             </div>
         </div>
-    </div>
-</div>
+    </st:grouped-list>
+</st:panel>

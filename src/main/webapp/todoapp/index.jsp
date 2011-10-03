@@ -7,31 +7,31 @@
 
     <script src="../lib/angular-0.9.19.js"></script>
     <script src="../lib/sencha-touch-1.1.0.js"></script>
-    <script src="sencha-touch-angular-adapter-0.9.0.js"></script>
+    <script src="../lib/require.js" data-main="../st-angular"></script>
     <script src="todoapp.js"></script>
 
 </head>
 <body>
 
-<div st:xtype="carousel" fullscreen="true">
-    <div st:xtype="panel" id="todos" ng:controller="TodoController" st:event="activate:onActivate()">
-        <div st:xtype="toolbar" dock="top" title="Todos">
-            <div st:xtype="button" text="Save" st:event="tap:saveTodos()"></div>
-            <div st:xtype="button" text="Settings" st:event="tap:showSettings()"></div>
-        </div>
-        <div st:xtype="textfield" name="inputText" place-holder="enter your todo here" st:event="action:addTodo()"></div>
+<st:carousel fullscreen="true">
+    <st:panel id="todos" ng:controller="TodoController" st:event="activate:onActivate()">
+        <st:toolbar dock="top" title="Todos">
+            <st:button text="Save" st:event="tap:saveTodos()"></st:button>
+            <st:button text="Settings" st:event="tap:showSettings()"></st:button>
+        </st:toolbar>
+        <st:textfield name="inputText" place-holder="enter your todo here" st:event="action:addTodo()"></st:textfield>
 
-        <div ng:repeat="todo in todos" st:xtype="checkboxfield" name="todo.done" label="{{todo.name}}"></div>
+        <st:checkboxfield ng:repeat="todo in todos" name="todo.done" label="{{todo.name}}"></st:checkboxfield>
 
-    </div>
-    <div st:xtype="panel" id="settings" ng:controller="SettingsController" st:event="activate:onActivate(),beforedeactivate:onPassivate()">
-        <div st:xtype="toolbar" dock="top" title="Settings">
-            <div st:xtype="button" text="Back" st:event="tap:back()"></div>
-        </div>
-        <div st:xtype="textfield" name="storageKey" label="Store key"></div>
-    </div>
+    </st:panel>
+    <st:panel id="settings" ng:controller="SettingsController" st:event="activate:onActivate(),beforedeactivate:onPassivate()">
+        <st:toolbar dock="top" title="Settings">
+            <st:button text="Back" st:event="tap:back()"></st:button>
+        </st:toolbar>
+        <st:textfield name="storageKey" label="Store key"></st:textfield>
+    </st:panel>
 
-</div>
+</st:carousel>
 
 
 </body>

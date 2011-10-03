@@ -86,11 +86,11 @@ Compile Integration and Syntax
 -----------------
 This uses the following syntax for declaring sencha widgets in a page:
 
-    <div st:xtype="panel" option1="value1" ...>
+    <st:panel option1="value1" ...>
       ... child widgets ...
-    </div>
+    </st:panel>
 
-The attribute `st:xtype` defines the anglar widgets name. The other options on the div are arguments for the constructor
+The element name `st:<type>` defines the sencha touch widget name. The other options on the element are arguments for the constructor
 of that widget with the following syntax:
 - Dashed to camelCase translation: As html attributes are case insensitive in some browsers, the translates
   attribute names with dashes like `part1-part2` into camelCase attributes like `part1Part2`.
@@ -102,26 +102,26 @@ of that widget with the following syntax:
 Child widgets within other widgets are automatically added to the parent widget. If the child widget contains the
 attribute `dock` then the function `Container.addDocked` is used, otherwise `Contianer.add`.
 
-The elements in the dom will be injected into the sencha components. So if you add a css class or style to a div,
-this will apply to the widget of that div.
+The elements in the dom will be injected into the sencha components. So if you add a css class or style to an element,
+this will apply to the widget of that element.
 
 Angular markup like `{{}}` can be used for all attributes. If the sencha components takes such an attribute and renders
 some children with it (e.g. the button widget adds the attribute `text`  as text-child in the dom) those children
-will also be automatically be updated by angular. E.g. a `<div st:xtype="button" text="{{name}}">` work well when the
+will also be automatically be updated by angular. E.g. a `<st:button text="{{name}}">` work well when the
 name property in the angular scope is updated!
 
 The angular widget `ng:repeat` can be used for all widgets and works very well for automatically creating or destroying
 widgets.
 
 The compilation integration is as following:
-1. Angular is asked to compile to top level elements down unto the first `<div st:xtype=...>`.
-2. A sencha widget is created for that div and connected to the dom element of the div.
+1. Angular is asked to compile to top level elements down unto the first `<st:mytype...>`.
+2. A sencha widget is created for that element and connected to the dom element of the element.
 3. The sencha widget is asked to render itself
-4. After the rendering of the sencha widget angular is called (recursively) to compile the children `<div>`s of
+4. After the rendering of the sencha widget angular is called (recursively) to compile the children of
    the sencha widget. By this, angular markup that was rendered by the sencha widget gets bound by angular.
-5. After the child widgets are completed with compilation, the next top level `<div>` is compiled.
+5. After the child widgets are completed with compilation, the next top level `<st:...>` is compiled.
 
-This means that we are compiling the widgets for every depths of `<div>`s with a separate
+This means that we are compiling the widgets for every depths of `<st:...>`s with a separate
 call to angulars compiler.
 
 
@@ -133,31 +133,31 @@ Alle meta tags given to `Ext.Application` as initialization parameters. The attr
 with the same rules that apply to the attributes of widgets.
 
 
-### `st:xtype="custom"`
+### `<st:custom>`
 This widget just takes all child elements and wraps them into a sencha component. By this, custom html can be displayed.
 
 
-### `st:xtype="list"`
+### `<st:list>`
 As we are not using stores any more, the list component was recreated. Usage:
 
-    <div st:xtype="list">
+    <st:list>
         <div ng:repeat="item in items">
             {{item.name}}
         </div>
-    </div>
+    </st:list>
 
 The widget creates for every child `<div>` a list entry. That `<div>` can have abritary html content.
 
-### `st:xtype="grouped-list"`
+### `<st:grouped-list>`
 Grouped list component. Usage:
 
-    <div st:xtype="grouped-list">
+    <st:grouped-list>
         <div group="{{group.key}}" ng:repeat="group in groups()">
             <div ng:repeat="item in group.items">
                 {{item.name}}
             </div>
         </div>
-    </div>
+    </st:grouped-list>
 
 The widget creates for every child `<div>` a group entry with the heading of the `group` attribute.
 All child `<div>`s of those groups are then styled as normal list entry.
@@ -173,7 +173,8 @@ for selected list entries.
 ### Directive `st:event="<event1>:handler1,<event2>:handler2,..."`
 Central directive for event-handling. The event names can either be event names of sencha widgets (e.g. `activated` for panels),
 but also generic events like `tap`, ... that are available for all elements.
-Note that the widget events are only available if the directive is added to a `<div>` that declares a sencha component.
+Note that the widget events are only available if the directive is added to an `<st:...>` element
+that declares a sencha component.
 
 ### Widget `st:if="expression"`
 This widget renders an element only if the expression evaluates to true.

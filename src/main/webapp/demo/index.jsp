@@ -17,24 +17,24 @@
 </head>
 <body>
 
-<div st:xtype="tabpanel" tab-bar-dock="bottom" id="main" fullscreen="true">
+<st:tabpanel tab-bar-dock="bottom" id="main" fullscreen="true">
     <jsp:include page="lists.jsp"></jsp:include>
     <jsp:include page="toolbars.jsp"></jsp:include>
     <jsp:include page="popups.jsp"></jsp:include>
     <jsp:include page="carousel.jsp"></jsp:include>
     <jsp:include page="form.jsp"></jsp:include>
-</div>
+</st:tabpanel>
 
-<div st:xtype="sheet" id="sheet1" ng:controller="PopupController">
-    <div st:xtype="button" dock="top" text="Button1" st:event="tap:hide('sheet1')"></div>
-</div>
+<st:sheet id="sheet1" ng:controller="PopupController">
+    <st:button dock="top" text="Button1" st:event="tap:hide('sheet1')"></st:button>
+</st:sheet>
 
-<div st:xtype="panel" title="Popup1" id="popup1" floating="true" centered="true" modal="true" ng:controller="PopupController">
-    <div st:xtype="custom">
+<st:panel title="Popup1" id="popup1" floating="true" centered="true" modal="true" ng:controller="PopupController">
+    <st:custom>
         Hello
-    </div>
-    <div st:xtype="button" text="Hide" st:event="tap:hide('popup1')"></div>
-</div>
+    </st:custom>
+    <st:button text="Hide" st:event="tap:hide('popup1')"></st:button>
+</st:panel>
 
 
 </body>

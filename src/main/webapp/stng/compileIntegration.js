@@ -2,17 +2,29 @@ define(['angular', 'ext', 'stng/util'], function(angular, Ext, util) {
     var $ = util.jqLite;
 
     function compilePage() {
+        for (var type in Ext.ComponentMgr.types) {
+            registerWidget(type);
+        }
+
         var element = $(document.getElementsByTagName("body"));
         var scope = angular.compile(element)();
     }
 
     var compileCounter = 0;
     var currentCompileParent;
-    angular.widget('@st:xtype', function(expression, compileElement) {
+
+    function compileWidget(type, compileElement) {
         var compiler = this;
-        compileElement.removeAttr('st:xtype');
+        if (compileElement.attr('st:compiled')) {
+            this.descend(true);
+            this.directives(true);
+            return function() {
+
+            }
+        }
+        compileElement.attr('st:compiled', 'true');
+
         var compileIndex = compileCounter++;
-        var type = expression;
         this.descend(false);
         this.directives(false);
         var options = util.stOptions(compileElement[0]);
@@ -78,7 +90,13 @@ define(['angular', 'ext', 'stng/util'], function(angular, Ext, util) {
                 }
             }
         }
-    });
+    }
+
+    function registerWidget(type) {
+        angular.widget('st:'+type, function(element) {
+            return compileWidget.call(this, type, element);
+        })
+    }
 
     return {
         compilePage: compilePage
