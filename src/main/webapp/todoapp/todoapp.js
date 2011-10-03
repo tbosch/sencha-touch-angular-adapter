@@ -1,7 +1,7 @@
 angular.service('todoStore', function(jsonp, waitDialog) {
     var readUrl = 'https://secure.openkeyval.org/';
     var writeUrl = 'https://secure.openkeyval.org/store/?';
-    var _storageKey = 'JQueryMobileAngularTodoapp';
+    var _storageKey = 'SenchaTouchAngularTodoapp';
 
     function read(success) {
         waitDialog.show('Please wait');

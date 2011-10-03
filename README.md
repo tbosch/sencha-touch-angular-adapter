@@ -5,7 +5,7 @@ Description
 -------------
 
 Integration between sencha touch and angular.js. Provides an html markup and compile integration as both
-frameworks modify the dom.
+frameworks modify the dom. This integration is very general, so almost all widgets should work out-of-the-box!
 
 Furthermore provides special enhancements useful for mobile applications.
 
@@ -33,26 +33,25 @@ Some parts are still missing:
 
 Sample
 ------------
-- Js fiddle [Todo mobile](http://jsfiddle.net/Du2DY/3/).
+- Js fiddle [Todo mobile with sencha touch](http://jsfiddle.net/tigbro/xVBRE/3/).
 - This project is a Maven-Project. Start it with mvn jetty:start and go to [localhost:8080/stng/demo](localhost:8080/stng/demo)
 
 
 Usage
 ---------
 
-Include this adapter _after_ angular and jquery mobile (see below).
+Include this adapter _after_ angular and sencha tuch (see below).
 
 ATTENTION: Do NOT use the `autobind` mode of angular!
 
 
     <html xmlns:ng="http://angularjs.org" xmlns:ngm="http://jqm-angularjs.org">
     <head>
-        <title>MobileToys</title>
-        <link rel="stylesheet" href="lib/jquery.mobile-1.0b1-oc1.css"/>
-        <script src="lib/jquery-1.6.1.js"></script>
-        <script src="lib/jquery.mobile-1.0b1-oc1.js"></script>
-        <script src="lib/angular-0.9.15.js"></script>
-        <script src="lib/jquery-mobile-angular-adapter.js"></script>
+        <link rel="stylesheet" href="lib/sencha-touch.css"/>
+
+        <script src="lib/angular-0.9.19.js"></script>
+        <script src="lib/sencha-touch-1.1.0.js"></script>
+        <script src="lib/sencha-touch-angular-adapter-0.9.0.js"></script>
     </head>
 
 
@@ -83,10 +82,115 @@ This follows the usual maven directory layout:
 - compiled: The result of the javascript compilation
 
 
-Widgets, Directives and Services
+Compile Integration and Syntax
+-----------------
+This uses the following syntax for declaring sencha widgets in a page:
+
+    <div st:xtype="panel" option1="value1" ...>
+      ... child widgets ...
+    </div>
+
+The attribute `st:xtype` defines the anglar widgets name. The other options on the div are arguments for the constructor
+of that widget with the following syntax:
+- Dashed to camelCase translation: As html attributes are case insensitive in some browsers, the translates
+  attribute names with dashes like `part1-part2` into camelCase attributes like `part1Part2`.
+- Deep object as configuration: Sencha often takes whole objects as configuration options. This can be set with attribute names that include a dot.
+  E.g. `layout.index="test"` will create an object that contains the property `index` and the value `test`.
+- Automatic value conversion: Some Sencha Properties properties require ints or booleans. The value will be automatically
+  converted into ints or boolean if they can be converted into those types.
+
+Child widgets within other widgets are automatically added to the parent widget. If the child widget contains the
+attribute `dock` then the function `Container.addDocked` is used, otherwise `Contianer.add`.
+
+The elements in the dom will be injected into the sencha components. So if you add a css class or style to a div,
+this will apply to the widget of that div.
+
+Angular markup like `{{}}` can be used for all attributes. If the sencha components takes such an attribute and renders
+some children with it (e.g. the button widget adds the attribute `text`  as text-child in the dom) those children
+will also be automatically be updated by angular. E.g. a `<div st:xtype="button" text="{{name}}">` work well when the
+name property in the angular scope is updated!
+
+The angular widget `ng:repeat` can be used for all widgets and works very well for automatically creating or destroying
+widgets.
+
+The compilation integration is as following:
+1. Angular is asked to compile to top level elements down unto the first `<div st:xtype=...>`.
+2. A sencha widget is created for that div and connected to the dom element of the div.
+3. The sencha widget is asked to render itself
+4. After the rendering of the sencha widget angular is called (recursively) to compile the children `<div>`s of
+   the sencha widget. By this, angular markup that was rendered by the sencha widget gets bound by angular.
+5. After the child widgets are completed with compilation, the next top level `<div>` is compiled.
+
+This means that we are compiling the widgets for every depths of `<div>`s with a separate
+call to angulars compiler.
+
+
+Syntax, Widgets, Directives and Services
 -----------
 
-### Directive ngm:click(handler)
+### <meta name="prop" content="value">
+Alle meta tags given to `Ext.Application` as initialization parameters. The attributes are converted
+with the same rules that apply to the attributes of widgets.
+
+
+### `st:xtype="custom"`
+This widget just takes all child elements and wraps them into a sencha component. By this, custom html can be displayed.
+
+
+### `st:xtype="list"`
+As we are not using stores any more, the list component was recreated. Usage:
+
+    <div st:xtype="list">
+        <div ng:repeat="item in items">
+            {{item.name}}
+        </div>
+    </div>
+
+The widget creates for every child `<div>` a list entry. That `<div>` can have abritary html content.
+
+### `st:xtype="grouped-list"`
+Grouped list component. Usage:
+
+    <div st:xtype="grouped-list">
+        <div group="{{group.key}}" ng:repeat="group in groups()">
+            <div ng:repeat="item in group.items">
+                {{item.name}}
+            </div>
+        </div>
+    </div>
+
+The widget creates for every child `<div>` a group entry with the heading of the `group` attribute.
+All child `<div>`s of those groups are then styled as normal list entry.
+That `<div>` within the list entries can have abritary html content.
+
+### Input components like `textfield` ...
+Those components can be bound, just like usual in angular, via the `name` attribute. This does bidirectional databinding.
+
+### Directive `st:selected="expression"`
+Marks those elements for which the expression evaluates to true with the css class that is used in sencha
+for selected list entries.
+
+### Directive `st:event="<event1>:handler1,<event2>:handler2,..."`
+Central directive for event-handling. The event names can either be event names of sencha widgets (e.g. `activated` for panels),
+but also generic events like `tap`, ... that are available for all elements.
+Note that the widget events are only available if the directive is added to a `<div>` that declares a sencha component.
+
+### Widget `st:if="expression"`
+This widget renders an element only if the expression evaluates to true.
+
+### Service $waitDialog
+This service has two functions:
+- `show(msg)`: Shows the wait dialog with the given message
+- `hide()`: Hides the wait dialog.
+
+### Angular Service $show(id) and $hide(id)
+This service calls the show resp. hide function on the the sencha component that belongs to the dom element with the given id.
+Useful for dialogs.
+
+### Angular Service $activate(id, animation)
+This service calls the setActiveItem` function on the the sencha component that belongs to the dom element with the given id.
+Useful for TabPanels, Carousels and panels with card layout.
+
 
 
 

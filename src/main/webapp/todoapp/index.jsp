@@ -2,11 +2,6 @@
 <html xmlns:ng="http://angularjs.org" xmlns:stng="http://sencha-touch-angular.org">
 <head>
     <title>Sencha Toys</title>
-    <script>parent.instrument && parent.instrument(window);</script>
-    <meta name="tablet-startup-screen" content="tablet_startup.png">
-    <meta name="phone-startup-screen" content="phone_startup.png">
-    <meta name="icon" content="icon.png">
-    <meta name="gloss-on-icon" content="false">
 
     <link rel="stylesheet" href="../lib/sencha-touch.css"/>
 
