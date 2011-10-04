@@ -22,7 +22,7 @@ define(['angular'], function(angular) {
         return null;
     }
 
-    var getAttributes = function(el) {
+    var attributes = function(el) {
         var res = {};
         var attrs = el.attributes;
         for (var i = 0, l = attrs.length, attr; i < l; i++) {
@@ -32,13 +32,7 @@ define(['angular'], function(angular) {
         return res;
     };
 
-    function stOptions(el) {
-        var attrs;
-        if (el.nodeType) {
-            attrs = getAttributes(el);
-        } else {
-            attrs = el;
-        }
+    function stOptions(attrs) {
         var res = {};
         var key, value;
         for (key in attrs) {
@@ -116,6 +110,7 @@ define(['angular'], function(angular) {
         stWidget: stWidget,
         nearestStWidget: nearestStWidget,
         stOptions: stOptions,
-        jqLite: angular.element
+        jqLite: angular.element,
+        attributes: attributes
     }
 });

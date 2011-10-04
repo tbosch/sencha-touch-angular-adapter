@@ -13,6 +13,12 @@ define(['angular', 'ext', 'stng/util'], function(angular, Ext, util) {
     var compileCounter = 0;
     var currentCompileParent;
 
+    var directAttributes = {
+        class: true,
+        style: true,
+        id: true
+    };
+
     function compileWidget(type, compileElement) {
         var compiler = this;
         if (compileElement.attr('st:compiled')) {
@@ -22,12 +28,24 @@ define(['angular', 'ext', 'stng/util'], function(angular, Ext, util) {
 
             }
         }
+
+        var attrs = util.attributes(compileElement[0]);
+        // Remove all attributes from the element, so the dom stays clean.
+        // But append the created options as a comment.
+        for (var key in attrs) {
+            if (!directAttributes[key] && key.indexOf(':')===-1) {
+                compileElement.removeAttr(key);
+                console.log("removing "+key);
+            }
+        }
+        var options = util.stOptions(attrs);
+        compileElement.prepend('<!-- options '+angular.toJson(options)+"-->");
+
         compileElement.attr('st:compiled', 'true');
 
         var compileIndex = compileCounter++;
         this.descend(false);
         this.directives(false);
-        var options = util.stOptions(compileElement[0]);
 
         return function(element) {
             var scope = this;
@@ -35,9 +53,13 @@ define(['angular', 'ext', 'stng/util'], function(angular, Ext, util) {
             function compileChildren(parent) {
                 var oldParent = currentCompileParent;
                 currentCompileParent = parent;
-                var oldElement = scope.$element;
                 // We are NOT creating an own scope for every widget.
                 // For this, we need to save the $element.
+                var oldElement = scope.$element;
+                // We really do need the second compile here,
+                // as we also want to compile tags that were created by
+                // sencha widgets (e.g. the button tag puts it's title attribute
+                // as a text child, and that attribute might contain angular widgets like {{}}.
                 compiler.compile(element)(scope);
                 scope.$element = oldElement;
                 currentCompileParent = oldParent;
