@@ -14,9 +14,9 @@ define(['angular', 'ext', 'stng/util'], function(angular, Ext, util) {
     var currentCompileParent;
 
     var directAttributes = {
-        class: true,
-        style: true,
-        id: true
+        'class': true,
+        'style': true,
+        'id': true
     };
 
     function compileWidget(type, compileElement) {
@@ -35,7 +35,6 @@ define(['angular', 'ext', 'stng/util'], function(angular, Ext, util) {
         for (var key in attrs) {
             if (!directAttributes[key] && key.indexOf(':')===-1) {
                 compileElement.removeAttr(key);
-                console.log("removing "+key);
             }
         }
         var options = util.stOptions(attrs);
