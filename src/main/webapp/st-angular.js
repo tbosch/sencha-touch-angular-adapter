@@ -8,11 +8,13 @@ define([
     'stng/navigation',
     'stng/if',
     'stng/repeat',
+    'stng/store',
     'stng/setup',
     'stng/events',
     'stng/waitDialog',
     'stng/input'
 ], function(angular, util, compileIntegration) {
+    compileIntegration.registerWidgets();
     return {
     }
 });

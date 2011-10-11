@@ -4,8 +4,8 @@
     <title>Sencha Toys</title>
 
     <link rel="stylesheet" href="../lib/sencha-touch.css"/>
-
-    <script src="../lib/angular-0.9.19.js"></script>
+    <meta name="auto-start" content="true">
+    <script src="../lib/angular-0.9.19.js" autobind></script>
     <script src="../lib/sencha-touch-1.1.0.js"></script>
     <script src="../lib/require.js" data-main="../st-angular"></script>
     <!--

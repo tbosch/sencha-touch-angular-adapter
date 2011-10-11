@@ -1,23 +1,19 @@
 define(['angular', 'ext', 'stng/util'], function(angular, Ext, util) {
     var $ = util.jqLite;
 
-    function compilePage() {
+    function registerWidgets() {
         for (var type in Ext.ComponentMgr.types) {
             registerWidget(type);
         }
+    }
 
+    function compilePage() {
         var element = $(document.getElementsByTagName("body"));
         var scope = angular.compile(element)();
     }
 
     var compileCounter = 0;
     var currentCompileParent;
-
-    var directAttributes = {
-        'class': true,
-        'style': true,
-        'id': true
-    };
 
     function compileWidget(type, compileElement) {
         var compiler = this;
@@ -29,16 +25,7 @@ define(['angular', 'ext', 'stng/util'], function(angular, Ext, util) {
             }
         }
 
-        var attrs = util.attributes(compileElement[0]);
-        // Remove all attributes from the element, so the dom stays clean.
-        // But append the created options as a comment.
-        for (var key in attrs) {
-            if (!directAttributes[key] && key.indexOf(':')===-1) {
-                compileElement.removeAttr(key);
-            }
-        }
-        var options = util.stOptions(attrs);
-        compileElement.prepend('<!-- options '+angular.toJson(options)+"-->");
+        var options = util.getOptionsAndRemoveAttributes(compileElement);
 
         compileElement.attr('st:compiled', 'true');
 
@@ -120,7 +107,8 @@ define(['angular', 'ext', 'stng/util'], function(angular, Ext, util) {
     }
 
     return {
-        compilePage: compilePage
+        compilePage: compilePage,
+        registerWidgets: registerWidgets
     }
 
 });

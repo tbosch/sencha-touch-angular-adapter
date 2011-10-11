@@ -1,4 +1,6 @@
 define(['angular'], function(angular) {
+    var stores = {};
+
     function stWidget(element, widget) {
         if (widget === undefined) {
             return element.data('stwidget');
@@ -11,7 +13,7 @@ define(['angular'], function(angular) {
 
     function nearestStWidget(element) {
         var widget;
-        while (element[0] !== document.documentElement) {
+        while (element.length>0 && element[0] !== document.documentElement) {
             widget = element.data('stwidget');
             if (widget) {
                 return widget;
@@ -24,7 +26,7 @@ define(['angular'], function(angular) {
 
     var attributes = function(el) {
         var res = {};
-        var attrs = el.attributes;
+        var attrs = el[0].attributes;
         for (var i = 0, l = attrs.length, attr; i < l; i++) {
             attr = attrs.item(i);
             res[attr.nodeName] = attr.nodeValue;
@@ -57,7 +59,9 @@ define(['angular'], function(angular) {
     var intRegex = /^[0-9]+$/;
 
     function convertValue(key, value) {
-        if (intRegex.test(value)) {
+        if (value && value.indexOf('store:')===0) {
+            value = stores[value.substring(6)];
+        } else if (intRegex.test(value)) {
             value = parseInt(value);
         } else if (value === 'true') {
             value = true;
@@ -104,6 +108,26 @@ define(['angular'], function(angular) {
         }
     }
 
+    var directAttributes = {
+        'class': true,
+        'style': true,
+        'id': true
+    };
+
+    function getOptionsAndRemoveAttributes(element) {
+        var attrs = attributes(element);
+        // Remove all attributes from the element, so the dom stays clean.
+        // But append the created options as a comment.
+        for (var key in attrs) {
+            if (!directAttributes[key] && key.indexOf(':')===-1) {
+                element.removeAttr(key);
+            }
+        }
+        var options = stOptions(attrs);
+        element.prepend('<!-- options '+angular.toJson(options)+"-->");
+        return options;
+    }
+
     return {
         layoutWithParents: layoutWithParents,
         destroyWidgetsUnder: destroyWidgetsUnder,
@@ -111,6 +135,8 @@ define(['angular'], function(angular) {
         nearestStWidget: nearestStWidget,
         stOptions: stOptions,
         jqLite: angular.element,
-        attributes: attributes
+        attributes: attributes,
+        stores: stores,
+        getOptionsAndRemoveAttributes: getOptionsAndRemoveAttributes
     }
 });

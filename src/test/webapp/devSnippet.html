@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html xmlns:ng="http://angularjs.org" xmlns:st="http://sencha-touch-angular.org">
+<head>
+    <title>Sencha Toys</title>
+
+    <link rel="stylesheet" href="lib/sencha-touch.css"/>
+    <meta name="auto-start" content="true">
+    <script src="lib/angular-0.9.19.js" autobind></script>
+    <script src="lib/sencha-touch-1.1.0.js"></script>
+    <script src="lib/require.js" data-main="st-angular"></script>
+
+</head>
+<body>
+
+<st:store id="myStore" fields="key,value">
+    <st:entry key="entry1" value="{{1+2}}"></st:entry>
+    <st:entry key="entry2" value="Hallo2"></st:entry>
+</st:store>
+
+<st:panel fullscreen="true">
+    <st:selectfield name="mySelect" store="store:myStore" display-field="value" value-field="key">
+
+    </st:selectfield>
+
+    <st:textfield name="myField"></st:textfield>
+
+    <st:custom>
+        {{mySelect}}
+
+    </st:custom>
+</st:panel>
+
+
+</body>
+</html>

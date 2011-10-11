@@ -137,27 +137,27 @@ with the same rules that apply to the attributes of widgets.
 This widget just takes all child elements and wraps them into a sencha component. By this, custom html can be displayed.
 
 
-### `<st:list>`
+### `<st:simple-list>`
 As we are not using stores any more, the list component was recreated. Usage:
 
-    <st:list>
+    <st:simple-list>
         <div ng:repeat="item in items">
             {{item.name}}
         </div>
-    </st:list>
+    </st:simple-list>
 
 The widget creates for every child `<div>` a list entry. That `<div>` can have abritary html content.
 
-### `<st:grouped-list>`
+### `<st:simple-grouped-list>`
 Grouped list component. Usage:
 
-    <st:grouped-list>
+    <st:simple-grouped-list>
         <div group="{{group.key}}" ng:repeat="group in groups()">
             <div ng:repeat="item in group.items">
                 {{item.name}}
             </div>
         </div>
-    </st:grouped-list>
+    </st:simple-grouped-list>
 
 The widget creates for every child `<div>` a group entry with the heading of the `group` attribute.
 All child `<div>`s of those groups are then styled as normal list entry.

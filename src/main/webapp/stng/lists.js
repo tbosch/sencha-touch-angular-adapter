@@ -34,7 +34,7 @@ define(['ext', 'stng/util', 'stng/customComponent'], function(Ext, util) {
         }
     });
 
-    Ext.reg('list', Ext.AngularList);
+    Ext.reg('simple-list', Ext.AngularList);
 
     Ext.AngularGroupedList = Ext.extend(Ext.AngularBaseList, {
         initContent: function() {
@@ -58,7 +58,7 @@ define(['ext', 'stng/util', 'stng/customComponent'], function(Ext, util) {
 
     });
 
-    Ext.reg('grouped-list', Ext.AngularGroupedList);
+    Ext.reg('simple-grouped-list', Ext.AngularGroupedList);
 
     angular.directive('st:selected', function(expression) {
         return function(element) {

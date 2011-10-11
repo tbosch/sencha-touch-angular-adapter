@@ -2,5 +2,6 @@
  * Contains all the unit-tests.
  */
 define([
-    'st-angular'
+    'st-angular',
+    'unit/textfieldSpec'
 ]);
