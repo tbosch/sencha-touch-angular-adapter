@@ -70,7 +70,7 @@ define(['angular', 'ext', 'stng/util'], function(angular, Ext, util) {
                 util.stWidget(element, this);
                 compileChildren(this);
                 return res;
-            }
+            };
             var component = Ext.create(options, type);
             util.stWidget(element, component);
             component.compileIndex = compileIndex;

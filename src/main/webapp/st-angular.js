@@ -12,7 +12,8 @@ define([
     'stng/setup',
     'stng/events',
     'stng/waitDialog',
-    'stng/input'
+    'stng/input',
+    'stng/stngStyles'
 ], function(angular, util, compileIntegration) {
     compileIntegration.registerWidgets();
     return {

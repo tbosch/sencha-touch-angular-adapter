@@ -16,18 +16,19 @@
 </head>
 <body>
 
-<st:carousel fullscreen="true">
-    <st:panel id="todos" ng:controller="TodoController" st:event="activate:onActivate()">
+<st:carousel fullscreen="true" ng:controller="TodoController" >
+    <st:panel id="todos" st:event="activate:refreshTodos()" scroll="true">
         <st:toolbar dock="top" title="Todos">
             <st:button text="Save" st:event="tap:saveTodos()"></st:button>
+            <st:spacer></st:spacer>
             <st:button text="Settings" st:event="tap:showSettings()"></st:button>
         </st:toolbar>
         <st:textfield name="inputText" place-holder="enter your todo here" st:event="action:addTodo()"></st:textfield>
-
-        <st:checkboxfield ng:repeat="todo in todos" name="todo.done" label="{{todo.name}}"></st:checkboxfield>
-
+        <st:panel>
+            <st:checkboxfield ng:repeat="todo in todos" name="todo.done" label-width="80%" label="{{todo.name}}"></st:checkboxfield>
+        </st:panel>
     </st:panel>
-    <st:panel id="settings" ng:controller="SettingsController" st:event="activate:onActivate(),beforedeactivate:onPassivate()">
+    <st:panel id="settings">
         <st:toolbar dock="top" title="Settings">
             <st:button text="Back" st:event="tap:back()"></st:button>
         </st:toolbar>

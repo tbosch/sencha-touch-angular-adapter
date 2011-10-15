@@ -84,15 +84,18 @@ define(['angular'], function(angular) {
         obj[parts[parts.length - 1]] = value;
     }
 
-    function layoutWithParents(widget) {
-        while (widget) {
-            if (widget.doComponentLayout) {
-                widget.doComponentLayout();
+    function layoutWithParents(element) {
+        while (element.length) {
+            var widget = stWidget(element);
+            if (widget) {
+                if (widget.doComponentLayout) {
+                    widget.doComponentLayout();
+                }
+                if (widget.doLayout) {
+                    widget.doLayout();
+                }
             }
-            if (widget.doLayout) {
-                widget.doLayout();
-            }
-            widget = widget.ownerCt;
+            element = element.parent();
         }
     }
 

@@ -13,6 +13,7 @@ This is needed to prevent initialization during unit tests.
 `<st:list>` -> `<st:simple-list>`
 `<st:grouped-list>` -> `<st:simple-grouped-list>`
 
+CSS-Bugfix for `<st:spacer>` (did not work before).
 
 
 0.9.1

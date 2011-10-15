@@ -1,20 +1,22 @@
 angular.service('todoStore', function(jsonp, waitDialog) {
     var readUrl = 'https://secure.openkeyval.org/';
     var writeUrl = 'https://secure.openkeyval.org/store/?';
-    var _storageKey = 'SenchaTouchAngularTodoapp';
 
-    function read(success) {
+    function read(key, success) {
         waitDialog.show('Please wait');
-        jsonp('JSON', readUrl + _storageKey + '?callback=JSON_CALLBACK', function(status, data) {
+        jsonp('JSON', readUrl + key + '?callback=JSON_CALLBACK', function(status, data) {
             success(data);
+            waitDialog.hide();
+        }, function(status) {
+            success([]);
             waitDialog.hide();
         });
     }
 
-    function write(value) {
+    function write(key, value) {
         waitDialog.show('Please wait');
         value = encodeURIComponent(JSON.stringify(value));
-        jsonp('JSON', writeUrl + _storageKey + '=' + value + '&callback=JSON_CALLBACK', function() {
+        jsonp('JSON', writeUrl + key + '=' + value + '&callback=JSON_CALLBACK', function() {
             waitDialog.hide();
         });
     }
@@ -41,6 +43,7 @@ function TodoController(todoStore, activate) {
     this.activate = activate;
     this.todos = [];
     this.inputText = '';
+    this.storageKey = 'SenchaTouchAngularTodoapp';
 }
 
 TodoController.$inject = ['todoStore', '$activate'];
@@ -48,6 +51,9 @@ TodoController.$inject = ['todoStore', '$activate'];
 TodoController.prototype = {
     showSettings: function() {
         this.activate("settings", "slide");
+    },
+    back: function() {
+        this.activate("todos", "slide");
     },
     addTodo: function() {
         this.todos.push({
@@ -58,7 +64,7 @@ TodoController.prototype = {
     },
     refreshTodos: function() {
         var self = this;
-        this.store.read(function(data) {
+        this.store.read(this.storageKey, function(data) {
             if (!data) {
                 data = [];
             }
@@ -71,29 +77,6 @@ TodoController.prototype = {
             return !todo.done;
         });
         this.todos = newTodos;
-        this.store.write(this.todos);
-    },
-    onActivate: function() {
-        this.refreshTodos();
+        this.store.write(this.storageKey, this.todos);
     }
-}
-
-function SettingsController(todoStore, activate) {
-    this.activate = activate;
-    this.todoStore = todoStore;
-}
-
-SettingsController.$inject = ['todoStore', '$activate'];
-
-
-SettingsController.prototype = {
-    onActivate: function() {
-        this.storageKey = this.todoStore.storageKey();
-    },
-    onPassivate: function() {
-        this.todoStore.storageKey(this.storageKey);
-    },
-    back: function() {
-        this.activate("todos", "slide");
-    }
-}
+};

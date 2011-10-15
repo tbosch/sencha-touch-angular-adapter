@@ -33,7 +33,7 @@ Some parts are still missing:
 
 Sample
 ------------
-- Js fiddle [Todo mobile with sencha touch](http://jsfiddle.net/tigbro/xVBRE/3/).
+- Js fiddle [Todo mobile with sencha touch](http://jsfiddle.net/tigbro/xVBRE/).
 - This project is a Maven-Project. Start it with mvn jetty:start and go to [localhost:8080/stng/demo](localhost:8080/stng/demo)
 
 
