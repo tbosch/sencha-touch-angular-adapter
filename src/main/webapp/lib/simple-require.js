@@ -37,7 +37,7 @@ var requirejs, require, define;
             value = value.apply(this, args);
         }
         defined[name] = value;
-    }
+    };
 
     require = function(deps, callback) {
         if (typeof callback === 'function') {
@@ -49,7 +49,5 @@ var requirejs, require, define;
             callback.apply(this, args);
         }
 
-    }
-
-    require.ready = $;
+    };
 })(window);

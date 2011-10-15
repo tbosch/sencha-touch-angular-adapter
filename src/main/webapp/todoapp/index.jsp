@@ -6,11 +6,11 @@
     <link rel="stylesheet" href="../lib/sencha-touch.css"/>
     <meta name="auto-start" content="true">
     <script src="../lib/angular-0.9.19.js" autobind></script>
-    <script src="../lib/sencha-touch-1.1.0.js"></script>
-    <script src="../lib/require.js" data-main="../st-angular"></script>
     <!--
-    <script src="sencha-touch-angular-adapter-0.9.1.js"></script>
+    <script src="../lib/sencha-touch-1.1.0.js"></script>
     -->
+    <script src="../lib/require.js" data-main="../st-angular"></script>
+    <script src="sencha-touch-angular-adapter-0.9.2-SNAPSHOT.js"></script>
     <script src="todoapp.js"></script>
 
 </head>
