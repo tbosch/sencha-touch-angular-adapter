@@ -66,18 +66,7 @@ define(['angular', 'stng/util'], function(angular, util) {
      * Supports component events as well as gesture events.
      */
     angular.directive("st:event", function(expression, element) {
-        var eventHandlers = {};
-        var pattern = /(.*?):(.*?)($|,)/g;
-        var match;
-        var hasData = false;
-        while (match = pattern.exec(expression)) {
-            hasData = true;
-            var event = match[1];
-            eventHandlers[event] = match[2];
-        }
-        if (!hasData) {
-            throw "Expression " + expression + " needs to have the syntax <event>:<handler>,...";
-        }
+        var eventHandlers = angular.fromJson(expression);
 
         var linkFn = function($updateView, element) {
             var widget = util.nearestStWidget(element);

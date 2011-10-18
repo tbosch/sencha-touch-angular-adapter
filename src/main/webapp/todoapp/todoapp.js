@@ -38,23 +38,16 @@ angular.service('todoStore', function(jsonp, waitDialog) {
     $inject: ['$xhr', '$waitDialog']
 });
 
-function TodoController(todoStore, activate) {
+function TodoController(todoStore) {
     this.store = todoStore;
-    this.activate = activate;
     this.todos = [];
     this.inputText = '';
     this.storageKey = 'SenchaTouchAngularTodoapp';
 }
 
-TodoController.$inject = ['todoStore', '$activate'];
+TodoController.$inject = ['todoStore'];
 
 TodoController.prototype = {
-    showSettings: function() {
-        this.activate("settings", "slide");
-    },
-    back: function() {
-        this.activate("todos", "slide");
-    },
     addTodo: function() {
         this.todos.push({
             name: this.inputText,

@@ -15,6 +15,10 @@ This is needed to prevent initialization during unit tests.
 
 CSS-Bugfix for `<st:spacer>` (did not work before).
 
+`st:event` now takes the handlers as json.
+
+Added `$navigate` service and `$navigate` expression.
+
 
 0.9.1
 -------------

@@ -170,7 +170,7 @@ Those components can be bound, just like usual in angular, via the `name` attrib
 Marks those elements for which the expression evaluates to true with the css class that is used in sencha
 for selected list entries.
 
-### Directive `st:event="<event1>:handler1,<event2>:handler2,..."`
+### Directive `st:event="{event1:'handler1',event2:'handler2',...}"`
 Central directive for event-handling. The event names can either be event names of sencha widgets (e.g. `activated` for panels),
 but also generic events like `tap`, ... that are available for all elements.
 Note that the widget events are only available if the directive is added to an `<st:...>` element
@@ -188,10 +188,24 @@ This service has two functions:
 This service calls the show resp. hide function on the the sencha component that belongs to the dom element with the given id.
 Useful for dialogs.
 
-### Angular Service $activate(id, animation)
+### Angular Service $navigate('[transition]:componentId')
 This service calls the setActiveItem` function on the the sencha component that belongs to the dom element with the given id.
 Useful for TabPanels, Carousels and panels with card layout.
+- The transition may be omitted, e.g. `$navigate('homepage')`.
 
+### Function angular.Object.navigate / $navigate
+Every expression can now use the `$navigate` expression to define the navigation outside of the controlers
+in the html pages. By this, the controllers stay independent of the navigation process and is reusable.
+
+There are two types of syntax:
+1. `$activate(target)`: Navigates to the given target using the `$navigate` service, so the target can also
+   include a transition.
+2. `$activate(test,'outcome1:target','outcome2:target',...)`: Navigates to that target whose outcome equals
+   to the test. The special outcomes `success` is applied for any value for `test` that is not `false` (e.g. also `undefined`),
+   and the outcome `failure` is used for the value `false` of test.
+   This also supports promises. In that case, the navivation is done with the first argument of
+   the `done` / `fail` callback of the promise. Also, the `success` outcome is mapped to the `done` callback
+   and the `failure` outcome to the `fail` callback.
 
 
 
