@@ -28,16 +28,27 @@ define(['angular', 'stng/util'], function(angular, util) {
         senchaActivate(pageId, animation);
     }
 
+    var currentDialog;
+
     function senchaActivate(componentId, animation) {
+        if (currentDialog) {
+            currentDialog.hide();
+            currentDialog = null;
+        }
+        if (componentId==='back') {
+            return;
+        }
         var widget;
         var element = $(document.getElementById(componentId));
         widget = util.stWidget(element);
-        var parentWidget = widget.ownerCt;
-        if (parentWidget.setActiveItem) {
-            parentWidget.setActiveItem(widget, animation);
+        if (widget.floating) {
+            widget.show();
+            currentDialog = widget;
         } else {
-            parentWidget.layout.setActiveItem(widget, animation);
-            parentWidget.doLayout();
+            var parentWidget = widget.ownerCt;
+            if (parentWidget.setActiveItem) {
+                parentWidget.setActiveItem(widget, animation);
+            }
         }
     }
 

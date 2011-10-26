@@ -1,4 +1,4 @@
-define(['angular', 'ext', 'stng/util'], function(angular, Ext, util) {
+define(['angular', 'ext', 'stng/util', 'stng/settings', 'stng/globalScope'], function(angular, Ext, util, settings, globalScope) {
     var $ = util.jqLite;
 
     function registerWidgets() {
@@ -7,9 +7,10 @@ define(['angular', 'ext', 'stng/util'], function(angular, Ext, util) {
         }
     }
 
-    function compilePage() {
-        var element = $(document.getElementsByTagName("body"));
-        var scope = angular.compile(element)();
+    function registerWidget(type) {
+        angular.widget('st:'+type, function(element) {
+            return compileWidget.call(this, type, element);
+        })
     }
 
     var compileCounter = 0;
@@ -100,14 +101,15 @@ define(['angular', 'ext', 'stng/util'], function(angular, Ext, util) {
         }
     }
 
-    function registerWidget(type) {
-        angular.widget('st:'+type, function(element) {
-            return compileWidget.call(this, type, element);
-        })
+    if (settings.autoStart) {
+        settings.launch = function() {
+            var element = $(document.getElementsByTagName("body"));
+            angular.compile(element)(globalScope);
+        };
+        new Ext.Application(settings);
     }
 
     return {
-        compilePage: compilePage,
         registerWidgets: registerWidgets
     }
 

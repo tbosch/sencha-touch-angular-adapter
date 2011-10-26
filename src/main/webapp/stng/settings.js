@@ -1,4 +1,4 @@
-define(['stng/util', 'stng/compileIntegration'], function(util, compileIntegration) {
+define(['stng/util'], function(util) {
     var metas = document.getElementsByTagName("meta");
     var props = {};
     for (var i = 0; i < metas.length; i++) {
@@ -6,10 +6,6 @@ define(['stng/util', 'stng/compileIntegration'], function(util, compileIntegrati
         props[meta.attr('name')] = meta.attr('content');
     }
     var options = util.stOptions(props);
-    if (options.autoStart) {
-        options.launch = function() {
-            compileIntegration.compilePage();
-        };
-        new Ext.Application(options);
-    }
+
+    return options;
 });

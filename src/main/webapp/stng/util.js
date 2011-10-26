@@ -1,6 +1,4 @@
 define(['angular'], function(angular) {
-    var stores = {};
-
     function stWidget(element, widget) {
         if (widget === undefined) {
             return element.data('stwidget');
@@ -59,9 +57,7 @@ define(['angular'], function(angular) {
     var intRegex = /^[0-9]+$/;
 
     function convertValue(key, value) {
-        if (value && value.indexOf('store:')===0) {
-            value = stores[value.substring(6)];
-        } else if (intRegex.test(value)) {
+        if (intRegex.test(value)) {
             value = parseInt(value);
         } else if (value === 'true') {
             value = true;
@@ -139,7 +135,6 @@ define(['angular'], function(angular) {
         stOptions: stOptions,
         jqLite: angular.element,
         attributes: attributes,
-        stores: stores,
         getOptionsAndRemoveAttributes: getOptionsAndRemoveAttributes
     }
 });

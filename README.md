@@ -132,6 +132,17 @@ Syntax, Widgets, Directives and Services
 Alle meta tags given to `Ext.Application` as initialization parameters. The attributes are converted
 with the same rules that apply to the attributes of widgets.
 
+### Directive st:shared-controller="name1:Controller1, name2:Controller2, ..."
+Mobile pages are small, so often a usecase is split up into multiple pages.
+To share common behaviour and state between those pages, this directive allows shared controllers.
+
+The directive will create an own scope for every given controllers and store it
+in the variables as `name1`, `name2`, ....
+If the controller is used on more than one page, the instance of the controller is shared.
+
+Note that the shared controller have the full scope functionality, e.g. for dependecy injection
+or using `$watch`.
+
 
 ### `<st:custom>`
 This widget just takes all child elements and wraps them into a sencha component. By this, custom html can be displayed.
@@ -180,18 +191,26 @@ that declares a sencha component.
 This widget renders an element only if the expression evaluates to true.
 
 ### Service $waitDialog
-This service has two functions:
-- `show(msg)`: Shows the wait dialog with the given message
-- `hide()`: Hides the wait dialog.
-
-### Angular Service $show(id) and $hide(id)
-This service calls the show resp. hide function on the the sencha component that belongs to the dom element with the given id.
-Useful for dialogs.
+The service `$waitDialog` allows the access to the Ext.LoadMask. It provides the following functions:
+- `show(msg, callback)`: Opens the wait dialog and shows the given message (if existing).
+    If the user clicks on the wait dialog the given callback is called.
+    This can be called even if the dialog is currently showing. It will the change the message
+    and revert back to the last message when the hide function is called.
+- `hide()`: Restores the dialog state before the show function was called.
+- `waitFor(promise, msg)`: Shows the dialog as long as the given promise runs. Shows the given message if defined.
+- `waitForWithCancel(promise, cancelData, msg)`: Same as above, but rejects the promise with the given cancelData
+   when the user clicks on the wait dialog.
 
 ### Angular Service $navigate('[transition]:componentId')
 This service calls the setActiveItem` function on the the sencha component that belongs to the dom element with the given id.
 Useful for TabPanels, Carousels and panels with card layout.
 - The transition may be omitted, e.g. `$navigate('homepage')`.
+
+Dialog (floating panel) support:
+- If the target component is a dialog, this will show the dialog.
+- If the last active component was a dialog, that dialog will automatically be hidden.
+- Use the special componentId `back` to close the currently open dialog.
+
 
 ### Function angular.Object.navigate / $navigate
 Every expression can now use the `$navigate` expression to define the navigation outside of the controlers
@@ -207,7 +226,35 @@ There are two types of syntax:
    the `done` / `fail` callback of the promise. Also, the `success` outcome is mapped to the `done` callback
    and the `failure` outcome to the `fail` callback.
 
+### Paging for lists
+Lists can be paged in the sense that more entries can be additionally loaded. By "loading" we mean the
+display of a sublist of a list that is already fully loaded in JavaScript. This is useful, as the main performance
+problems result from DOM operations, which can be reduced with this paging mechanism.
 
+To implement this paging mechaism, we extend the angular array type with the folling function:
+`angular.Array.paged(array[,filterExpr[,orderByExpr]])`:
+
+This returns the subarray of the given filtered and ordered array with the currently loaded pages.
+The default page size is defined by the meta tag `list-page-size`. It can be overwritten by the property `pageSize`
+on arrays. For the filtering and sorting see the `angular.Array.filter` and `angular.Array.orderBy`.
+
+The resulting list provides the following functions:
+- `hasMorePages()`: Returns a boolean indicating if there are more pages that can be loaded.
+- `loadNextPage()`: Loads the next page from the list that was given to `angular.Array.paged`.
+
+Note that this will cache the result of two calls until the next eval cycle or a change to the filter or orderBy arguments.
+
+As angular instruments all lists in expressions automatically with the functions form the `angular.Array` namespace,
+the function `paged` can directly be used in all angular expressions, with a `$` as prefix.
+The following example shows an example for a paged list for the data in the variable `myList`:
+
+
+    <st:list>
+        <div ng:repeat="item in list.$paged()">{{item}}</div>
+        <div st:if="list.$paged().hasMorePages()">
+            <a href="#" st:event="{tap: 'list.$paged().loadNextPage()'}">Load more</a>
+        </div>
+    </st:list>
 
 
 

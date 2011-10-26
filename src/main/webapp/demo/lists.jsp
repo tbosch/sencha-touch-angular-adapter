@@ -50,8 +50,8 @@
     <st:textfield name="selectedName" label="Selected text"></st:textfield>
     <st:panel layout.type="hbox" layout.align="stretch">
         <st:textfield name="insertText" flex="1"></st:textfield>
-        <st:button text="Add" st:event="tap:addItem()"></st:button>
-        <st:button text="Clear" st:event="tap:clearItems()"></st:button>
+        <st:button text="Add" st:event="{tap:'addItem()'}"></st:button>
+        <st:button text="Clear" st:event="{tap:'clearItems()'}"></st:button>
     </st:panel>
     <st:custom >
         <p>
@@ -60,7 +60,7 @@
     </st:custom>
 
     <st:simple-list scroll="false">
-        <div ng:repeat="item in items" st:selected="isSelected(item)" st:event="tap:itemTap(item)">
+        <div ng:repeat="item in items" st:selected="isSelected(item)" st:event="{tap:'itemTap(item)'}">
             {{item.name}}
         </div>
     </st:simple-list>
@@ -74,7 +74,7 @@
 
     <st:simple-grouped-list scroll="false">
         <div group="{{group.key}}" ng:repeat="group in groups()">
-            <div ng:repeat="item in group.items" st:event="tap:itemTap(item)" st:selected="isSelected(item)">
+            <div ng:repeat="item in group.items" st:event="{tap:'itemTap(item)'}" st:selected="isSelected(item)">
                 {{item.name}}
             </div>
         </div>

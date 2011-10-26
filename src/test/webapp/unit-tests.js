@@ -3,5 +3,12 @@
  */
 define([
     'st-angular',
-    'unit/textfieldSpec'
+    'unit/testutils',
+    'unit/textfieldSpec',
+    'unit/compileIntegrationSpec',
+    'unit/ifSpec',
+    'unit/pagingSpec',
+    'unit/sharedControllerSpec',
+    'unit/navigationSpec',
+    'unit/waitDialogSpec'
 ]);

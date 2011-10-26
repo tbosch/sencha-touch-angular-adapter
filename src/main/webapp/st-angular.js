@@ -7,13 +7,14 @@ define([
     'stng/lists',
     'stng/navigation',
     'stng/if',
+    'stng/paging',
     'stng/repeat',
-    'stng/store',
-    'stng/setup',
+    'stng/settings',
     'stng/events',
     'stng/waitDialog',
     'stng/input',
-    'stng/stngStyles'
+    'stng/stngStyles',
+    'stng/sharedController'
 ], function(angular, util, compileIntegration) {
     compileIntegration.registerWidgets();
     return {

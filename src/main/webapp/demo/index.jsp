@@ -26,17 +26,16 @@
     <jsp:include page="form.jsp"></jsp:include>
 </st:tabpanel>
 
-<st:sheet id="sheet1" ng:controller="PopupController">
-    <st:button dock="top" text="Button1" st:event="tap:hide('sheet1')"></st:button>
+<st:sheet id="sheet1">
+    <st:button dock="top" text="Button1" st:event="{tap:'$navigate(\'sheet1\')'}"></st:button>
 </st:sheet>
 
-<st:panel title="Popup1" id="popup1" floating="true" centered="true" modal="true" ng:controller="PopupController">
+<st:panel title="Popup1" id="popup1" floating="true" centered="true" modal="true">
     <st:custom>
         Hello
     </st:custom>
-    <st:button text="Hide" st:event="tap:hide('popup1')"></st:button>
+    <st:button text="Hide" st:event="{tap:'$navigate(\'back\')'}"></st:button>
 </st:panel>
-
 
 </body>
 </html>
