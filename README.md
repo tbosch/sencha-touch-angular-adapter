@@ -23,12 +23,11 @@ Missing parts / Restrictions
 Some parts are still missing:
 
 - Enabled/Disabled-Handling: This would be just a directive like `st:enabled` that calls Ext.Component.setEnabled().
-- Validation Markers: If a validation fails, how does Sencha notify this to the user?
+- Validation Markers: ng:validate does not work here... In angular 0.9.19 this is tricky to use, in angular 0.10
+  this should be easier...
 - Radiogroups: Does not yet return the correct value in databinding.
 - Selectfields: Does not work yet. This would be a subtag like `<st:option key="asdf" value="asdf">`
   that can be used with `ng:repeat`.
-- Paged Lists: This will be the same concept as in the jquery-mobile-angular-adapter.
-- Ext.Router is not yet supported. Do we need this?
 - list and grouped-list do not yet support automatically marking pressed items and the indexbar at the right.
 
 Sample
@@ -42,12 +41,13 @@ Usage
 
 Include this adapter _after_ angular and sencha tuch (see below).
 
-ATTENTION: Do NOT use the `autobind` mode of angular!
+ATTENTION: Do NOT use the `autobind` mode of angular, but use the `auto-start` meta tag.
 
 
     <html xmlns:ng="http://angularjs.org" xmlns:ngm="http://jqm-angularjs.org">
     <head>
         <link rel="stylesheet" href="lib/sencha-touch.css"/>
+        <meta name="auto-start" content="true">
 
         <script src="lib/angular-0.9.19.js"></script>
         <script src="lib/sencha-touch-1.1.0.js"></script>
@@ -131,6 +131,8 @@ Syntax, Widgets, Directives and Services
 ### <meta name="prop" content="value">
 Alle meta tags given to `Ext.Application` as initialization parameters. The attributes are converted
 with the same rules that apply to the attributes of widgets.
+
+The special entry `<meta name="auto-start" content="true">` is required to start the application.
 
 ### Directive st:shared-controller="name1:Controller1, name2:Controller2, ..."
 Mobile pages are small, so often a usecase is split up into multiple pages.

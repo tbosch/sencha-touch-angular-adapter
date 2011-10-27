@@ -27,6 +27,7 @@ define(['angular'], function(angular) {
             component.addListener('uncheck', listener);
         } else if (component.events.spin) {
             component.addListener('spin', listener);
+            component.addListener('change', listener);
         } else {
             component.addListener('change', listener);
         }
@@ -41,6 +42,11 @@ define(['angular'], function(angular) {
             var self = this;
             var scope = angular.element(self.el.dom).scope();
             var valueInScope;
+            // Note: We cannot use the $watch function here, for the following case:
+            // 1. value in scope: value0
+            // 2. value in ui is set to a value1 with <enter>-key bound to a controller action
+            // 3. controller action does something and resets the value to value0
+            // This case is not detected by the usual $watch logic!
             scope.$onEval(-1000, function() {
                 var newValue = scope.$get(self.name);
                 if (valueInScope!==newValue) {
@@ -50,11 +56,7 @@ define(['angular'], function(angular) {
             });
             addChangeListener(this, function() {
                 var value = getValue(self);
-                // This is needed for inputtexts in the following case:
-                // 1. value in scope: value0
-                // 2. value in ui is set to a value1 with <enter>-key bound to a controller action
-                // 3. controller action does something and resets the value to value0
-                // This case is not detected by the usual $watch logic!
+                // This is needed to allow the usecase above (why we cannot use $watch).
                 valueInScope = value;
                 scope.$set(self.name, value);
                 scope.$service("$updateView")();

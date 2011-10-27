@@ -4,7 +4,7 @@
 define([
     'st-angular',
     'unit/testutils',
-    'unit/textfieldSpec',
+    'unit/inputSpec',
     'unit/compileIntegrationSpec',
     'unit/ifSpec',
     'unit/pagingSpec',

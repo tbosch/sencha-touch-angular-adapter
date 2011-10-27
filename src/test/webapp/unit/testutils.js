@@ -19,6 +19,7 @@ define(['angular', 'ext', 'stng/util'], function(angular, Ext, util) {
             return _ready;
         });
         runs(function() {
+            Ext.gesture.Manager.detachListeners();
             Ext.gesture.Manager.init();
             _container = angular.element("<div></div>");
             var body = angular.element(document.getElementsByTagName("body"));
