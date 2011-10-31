@@ -89,8 +89,6 @@ define('angular',[], function() {
 });
 
 define('stng/util',['angular'], function(angular) {
-    var stores = {};
-
     function stWidget(element, widget) {
         if (widget === undefined) {
             return element.data('stwidget');
@@ -149,9 +147,7 @@ define('stng/util',['angular'], function(angular) {
     var intRegex = /^[0-9]+$/;
 
     function convertValue(key, value) {
-        if (value && value.indexOf('store:')===0) {
-            value = stores[value.substring(6)];
-        } else if (intRegex.test(value)) {
+        if (intRegex.test(value)) {
             value = parseInt(value);
         } else if (value === 'true') {
             value = true;
@@ -229,7 +225,6 @@ define('stng/util',['angular'], function(angular) {
         stOptions: stOptions,
         jqLite: angular.element,
         attributes: attributes,
-        stores: stores,
         getOptionsAndRemoveAttributes: getOptionsAndRemoveAttributes
     }
 });
@@ -240,119 +235,8 @@ define('ext',[], function() {
     }
 });
 
-define('stng/compileIntegration',['angular', 'ext', 'stng/util'], function(angular, Ext, util) {
-    var $ = util.jqLite;
-
-    function registerWidgets() {
-        for (var type in Ext.ComponentMgr.types) {
-            registerWidget(type);
-        }
-    }
-
-    function compilePage() {
-        var element = $(document.getElementsByTagName("body"));
-        var scope = angular.compile(element)();
-    }
-
-    var compileCounter = 0;
-    var currentCompileParent;
-
-    function compileWidget(type, compileElement) {
-        var compiler = this;
-        if (compileElement.attr('st:compiled')) {
-            this.descend(true);
-            this.directives(true);
-            return function() {
-
-            }
-        }
-
-        var options = util.getOptionsAndRemoveAttributes(compileElement);
-
-        compileElement.attr('st:compiled', 'true');
-
-        var compileIndex = compileCounter++;
-        this.descend(false);
-        this.directives(false);
-
-        return function(element) {
-            var scope = this;
-
-            function compileChildren(parent) {
-                var oldParent = currentCompileParent;
-                currentCompileParent = parent;
-                // We are NOT creating an own scope for every widget.
-                // For this, we need to save the $element.
-                var oldElement = scope.$element;
-                // We really do need the second compile here,
-                // as we also want to compile tags that were created by
-                // sencha widgets (e.g. the button tag puts it's title attribute
-                // as a text child, and that attribute might contain angular widgets like {{}}.
-                compiler.compile(element)(scope);
-                scope.$element = oldElement;
-                currentCompileParent = oldParent;
-            }
-
-            options.el = Ext.Element.get(element[0]);
-            var prototype = Ext.ComponentMgr.types[type].prototype;
-            var renderHookName;
-            if (prototype.add) {
-                // For Containers we need to create the children
-                // within the initContent function, so that
-                // the layout is already up to date.
-                renderHookName = 'initContent';
-            } else {
-                // For components initContent is sometimes too early (e.g. for buttons),
-                // to be sure that all angular markup like {{}} gets evaluated.
-                renderHookName = 'afterRender';
-            }
-            var oldHook = prototype[renderHookName];
-            options[renderHookName] = function() {
-                var res = oldHook.apply(this, arguments);
-                util.stWidget(element, this);
-                compileChildren(this);
-                return res;
-            };
-            var component = Ext.create(options, type);
-            util.stWidget(element, component);
-            component.compileIndex = compileIndex;
-            var parent = currentCompileParent;
-            if (!parent) {
-                parent = util.nearestStWidget(element.parent());
-            }
-            if (component && parent && !options.floating) {
-                if (options.dock) {
-                    parent.addDocked(component);
-                } else {
-                    // The insert index is defined by the element order in the original document.
-                    // E.g. important if an element is added later via ng:repeat
-                    // Especially needed as angular's ng:repeat uses $onEval to create
-                    // it's children, and does not do this directly in the linking phase.
-                    var insertIndex = 0;
-                    while (insertIndex < parent.items.length && parent.items.getAt(insertIndex).compileIndex <= compileIndex) {
-                        insertIndex++;
-                    }
-                    parent.add(insertIndex, component);
-                }
-                if (!currentCompileParent) {
-                    // During compilation from a parent we do not need to do an extra layout!
-                    parent.doLayout();
-                }
-            }
-        }
-    }
-
-    function registerWidget(type) {
-        angular.widget('st:'+type, function(element) {
-            return compileWidget.call(this, type, element);
-        })
-    }
-
-    return {
-        compilePage: compilePage,
-        registerWidgets: registerWidgets
-    }
-
+define('stng/globalScope',['angular'], function(angular) {
+    return angular.scope();
 });
 
 define('stng/customComponent',['ext', 'stng/util'], function(Ext, util) {
@@ -385,10 +269,31 @@ define('stng/customComponent',['ext', 'stng/util'], function(Ext, util) {
 define('stng/lists',['ext', 'stng/util', 'stng/customComponent'], function(Ext, util) {
     var $ = util.jqLite;
 
-    function wrapInner(element, newElement) {
-        var oldChildren = element.children();
-        element.append(newElement);
-        newElement.append(oldChildren);
+    function isElement(element) {
+        return element[0].nodeType === 1;
+    }
+
+    // Does not exist in jQLite of angular...
+    function contents(element) {
+        var res = [];
+        var nodes;
+        for (var i=0; i<element.length; i++) {
+            nodes = element[i].childNodes;
+            for (var j=0; j<nodes.length; j++) {
+                res.push(nodes.item(j));
+            }
+        }
+        return $(res);
+    }
+
+    function wrapInner(elements, newElementString) {
+        var el, newEl;
+        for (var i=0; i<elements.length; i++) {
+            el = elements.eq(i);
+            newEl = $(newElementString);
+            newEl.append(contents(el));
+            el.append(newEl);
+        }
     }
 
     /**
@@ -412,13 +317,14 @@ define('stng/lists',['ext', 'stng/util', 'stng/customComponent'], function(Ext, 
     Ext.AngularList = Ext.extend(Ext.AngularBaseList, {
         initContent: function() {
             Ext.AngularList.superclass.initContent.call(this);
-            var childs = $(this.getTargetEl().dom).children();
+            var el = $(this.getTargetEl().dom);
+            var childs = el.children();
             childs.addClass('x-list-item');
-            wrapInner(childs, $('<div class="x-list-item-body"></div>'));
+            wrapInner(childs, '<div class="x-list-item-body"></div>');
         }
     });
 
-    Ext.reg('simple-list', Ext.AngularList);
+    Ext.reg('ng-list', Ext.AngularList);
 
     Ext.AngularGroupedList = Ext.extend(Ext.AngularBaseList, {
         initContent: function() {
@@ -426,15 +332,17 @@ define('stng/lists',['ext', 'stng/util', 'stng/customComponent'], function(Ext, 
             var groupChilds = $(this.getTargetEl().dom).children();
             var groupChild, groupAttr, childs;
             for (var i = 0; i < groupChilds.length; i++) {
-                groupChild = $(groupChilds[i]);
-                if (groupChild[0].nodeName==='DIV') {
+                groupChild = groupChilds.eq(i);
+                if (isElement(groupChild)) {
                     groupChild.addClass('x-list-group');
+
                     groupAttr = groupChild.attr('group');
                     groupChild.removeAttr('group');
-                    childs = groupChild.children('div');
+
+                    childs = groupChild.children();
                     childs.addClass('x-list-item');
-                    wrapInner(childs, $('<div class="x-list-item-body"></div>'));
-                    wrapInner(groupChild, $('<div class="x-list-group-items"></div>'));
+                    wrapInner(childs, '<div class="x-list-item-body"></div>');
+                    wrapInner(groupChild, '<div class="x-list-group-items"></div>');
                     groupChild.prepend('<h3 class="x-list-header">' + groupAttr + '</h3>');
                 }
             }
@@ -442,7 +350,7 @@ define('stng/lists',['ext', 'stng/util', 'stng/customComponent'], function(Ext, 
 
     });
 
-    Ext.reg('simple-grouped-list', Ext.AngularGroupedList);
+    Ext.reg('ng-grouped-list', Ext.AngularGroupedList);
 
     angular.directive('st:selected', function(expression) {
         return function(element) {
@@ -490,16 +398,27 @@ define('stng/navigation',['angular', 'stng/util'], function(angular, util) {
         senchaActivate(pageId, animation);
     }
 
+    var currentDialog;
+
     function senchaActivate(componentId, animation) {
+        if (currentDialog) {
+            currentDialog.hide();
+            currentDialog = null;
+        }
+        if (componentId==='back') {
+            return;
+        }
         var widget;
         var element = $(document.getElementById(componentId));
         widget = util.stWidget(element);
-        var parentWidget = widget.ownerCt;
-        if (parentWidget.setActiveItem) {
-            parentWidget.setActiveItem(widget, animation);
+        if (widget.floating) {
+            widget.show();
+            currentDialog = widget;
         } else {
-            parentWidget.layout.setActiveItem(widget, animation);
-            parentWidget.doLayout();
+            var parentWidget = widget.ownerCt;
+            if (parentWidget.setActiveItem) {
+                parentWidget.setActiveItem(widget, animation);
+            }
         }
     }
 
@@ -662,77 +581,7 @@ define('stng/repeat',['angular', 'stng/util'], function(angular, util) {
     });
 });
 
-define('stng/store',['angular', 'stng/util'], function(angular, util) {
-    angular.widget('st:store', function(element) {
-        var id = element.attr('id');
-        var fields = element.attr('fields').split(',');
-        this.descend(true);
-        this.directives(true);
-        var store = new Ext.data.Store({
-            fields: fields
-        });
-        // TODO is this needed? store.fields = fields;
-        util.stores[id] = store;
-        return function(element) {
-        }
-    });
-
-    var evalPattern = /^{{.*}}$/;
-    function evalOptions(scope, options) {
-        var value;
-        var res = {};
-        for (var key in options) {
-            value = options[key];
-            if (value.matches && value.matches(evalPattern)) {
-                value = scope.$eval(value);
-            }
-            res[key] = value;
-        }
-        return res;
-    }
-
-    function updateRecord(record, props) {
-        var oldVal, currVal, changed;
-        changed = false;
-        for (var key in props) {
-            oldVal = record.get(key);
-            currVal = props[key];
-            if (!angular.Object.equals(oldVal, currVal)) {
-                record.set(key, currVal);
-                changed = true;
-            }
-        }
-        return changed;
-    }
-
-    angular.widget('st:entry', function(element) {
-        this.descend(false);
-        this.directives(false);
-
-        var options = util.getOptionsAndRemoveAttributes(element);
-
-        return function(element) {
-            var parent = element.parent();
-            var store = util.stores[parent.attr('id')];
-            var obj = {};
-            var records = store.add(obj);
-            element.bind('remove', function() {
-                // TODO does this work??
-                store.remove(records);
-            });
-
-            var scope = this;
-            this.$onEval(function() {
-                var currOptions= evalOptions(scope, options);
-                updateRecord(records[0], currOptions);
-                // TODO fire a changed event??
-            });
-        }
-    });
-
-});
-
-define('stng/setup',['stng/util', 'stng/compileIntegration'], function(util, compileIntegration) {
+define('stng/settings',['stng/util'], function(util) {
     var metas = document.getElementsByTagName("meta");
     var props = {};
     for (var i = 0; i < metas.length; i++) {
@@ -740,12 +589,301 @@ define('stng/setup',['stng/util', 'stng/compileIntegration'], function(util, com
         props[meta.attr('name')] = meta.attr('content');
     }
     var options = util.stOptions(props);
-    if (options.autoStart) {
-        options.launch = function() {
-            compileIntegration.compilePage();
-        };
-        new Ext.Application(options);
+
+    return options;
+});
+
+define('stng/compileIntegration',['angular', 'ext', 'stng/util', 'stng/settings', 'stng/globalScope'], function(angular, Ext, util, settings, globalScope) {
+    var $ = util.jqLite;
+
+    var angularOverrideWidgetTypePrefix = "ng-";
+
+    function registerWidgets() {
+        var types = Ext.ComponentMgr.types;
+        for (var type in types) {
+            if (!hasAngularOverrideWidget(types, type)) {
+                registerWidget(type);
+            }
+        }
     }
+
+    function xtype2angularWidgetName(xtype) {
+        if (xtype.indexOf(angularOverrideWidgetTypePrefix)===0) {
+            xtype = xtype.substring(3);
+        }
+        return xtype;
+    }
+
+    function hasAngularOverrideWidget(allTypes, type) {
+        return !!allTypes[angularOverrideWidgetTypePrefix+type];
+    }
+
+    function registerWidget(type) {
+        var widgetName = xtype2angularWidgetName(type);
+        angular.widget('st:'+widgetName, function(element) {
+            return compileWidget.call(this, type, element);
+        })
+    }
+
+    var compileCounter = 0;
+    var currentCompileParent;
+
+    function compileWidget(type, compileElement) {
+        var compiler = this;
+        if (compileElement.attr('st:compiled')) {
+            this.descend(true);
+            this.directives(true);
+            return function() {
+
+            }
+        }
+
+        var options = util.getOptionsAndRemoveAttributes(compileElement);
+
+        compileElement.attr('st:compiled', 'true');
+
+        var compileIndex = compileCounter++;
+        this.descend(false);
+        this.directives(false);
+
+        return function(element) {
+            var scope = this;
+
+            function compileChildren(parent) {
+                var oldParent = currentCompileParent;
+                currentCompileParent = parent;
+                // We are NOT creating an own scope for every widget.
+                // For this, we need to save the $element.
+                var oldElement = scope.$element;
+                // We really do need the second compile here,
+                // as we also want to compile tags that were created by
+                // sencha widgets (e.g. the button tag puts it's title attribute
+                // as a text child, and that attribute might contain angular widgets like {{}}.
+                compiler.compile(element)(scope);
+                scope.$element = oldElement;
+                currentCompileParent = oldParent;
+            }
+
+            options.el = Ext.Element.get(element[0]);
+            var prototype = Ext.ComponentMgr.types[type].prototype;
+            var renderHookName;
+            if (prototype.add) {
+                // For Containers we need to create the children
+                // within the initContent function, so that
+                // the layout is already up to date.
+                renderHookName = 'initContent';
+            } else {
+                // For components initContent is sometimes too early (e.g. for buttons),
+                // to be sure that all angular markup like {{}} gets evaluated.
+                renderHookName = 'afterRender';
+            }
+            var oldHook = prototype[renderHookName];
+            options[renderHookName] = function() {
+                var res = oldHook.apply(this, arguments);
+                util.stWidget(element, this);
+                compileChildren(this);
+                return res;
+            };
+            var component = Ext.create(options, type);
+            util.stWidget(element, component);
+            component.compileIndex = compileIndex;
+            var parent = currentCompileParent;
+            if (!parent) {
+                parent = util.nearestStWidget(element.parent());
+            }
+            if (component && parent && !options.floating) {
+                if (options.dock) {
+                    parent.addDocked(component);
+                } else {
+                    // The insert index is defined by the element order in the original document.
+                    // E.g. important if an element is added later via ng:repeat
+                    // Especially needed as angular's ng:repeat uses $onEval to create
+                    // it's children, and does not do this directly in the linking phase.
+                    var insertIndex = 0;
+                    while (insertIndex < parent.items.length && parent.items.getAt(insertIndex).compileIndex <= compileIndex) {
+                        insertIndex++;
+                    }
+                    parent.add(insertIndex, component);
+                }
+                if (!currentCompileParent) {
+                    // During compilation from a parent we do not need to do an extra layout!
+                    parent.doLayout();
+                }
+            }
+        }
+    }
+
+    if (settings.autoStart) {
+        settings.launch = function() {
+            var element = $(document.getElementsByTagName("body"));
+            angular.compile(element)(globalScope);
+        };
+        new Ext.Application(settings);
+    }
+
+    return {
+        registerWidgets: registerWidgets
+    }
+
+});
+
+/**
+ * Paging Support for lists.
+ * Note that this will cache the result of two calls until the next eval cycle
+ * or a change to the filter or orderBy arguments.
+ * <p>
+ * Operations on the result:
+ * - hasMorePages: returns whether there are more pages that can be loaded via loadNextPage
+ * - loadNextPage: Loads the next page of the list
+ */
+define('stng/paging',['ext', 'angular', 'stng/globalScope', 'stng/settings'], function(Ext, angular, globalScope, settings) {
+    /**
+     * The default page size for all lists.
+     * Can be overwritten using array.pageSize or
+     * a meta tag with name "list-page-size"
+     **/
+    if (!settings.listPageSize) {
+        settings.listPageSize = 10;
+    }
+
+    var globalEvalId = 0;
+    globalScope.$onEval(-99999, function() {
+        globalEvalId++;
+    });
+
+    var enhanceFunctions = {
+        init : init,
+        refresh : refresh,
+        refreshIfNeeded : refreshIfNeeded,
+        setFilter : setFilter,
+        setOrderBy : setOrderBy,
+        loadNextPage : loadNextPage,
+        hasMorePages : hasMorePages,
+        reset : reset
+    };
+
+    var usedProps = {
+        pageSize: true,
+        originalList: true,
+        refreshNeeded: true,
+        filter: true,
+        orderBy: true,
+        loadedCount: true,
+        availableCount: true,
+        evalId: true
+    };
+
+
+    function createPagedList(list) {
+        var res = [];
+        for (var fnName in enhanceFunctions) {
+            res[fnName] = enhanceFunctions[fnName];
+        }
+        res.init(list);
+        var oldHasOwnProperty = res.hasOwnProperty;
+        res.hasOwnProperty = function(propName) {
+            if (propName in enhanceFunctions || propName in usedProps) {
+                return false;
+            }
+            return oldHasOwnProperty.apply(this, arguments);
+        }
+        return res;
+    }
+
+    function init(list) {
+        if (list.pageSize) {
+            this.pageSize = list.pageSize;
+        } else {
+            this.pageSize = settings.listPageSize;
+        }
+        this.originalList = list;
+        this.refreshNeeded = true;
+        this.reset();
+    }
+
+    function refresh() {
+        var list = this.originalList;
+        if (this.filter) {
+            list = angular.Array.filter(list, this.filter);
+        }
+        if (this.orderBy) {
+            list = angular.Array.orderBy(list, this.orderBy);
+        }
+        var loadedCount = this.loadedCount;
+        if (loadedCount < this.pageSize) {
+            loadedCount = this.pageSize;
+        }
+        if (loadedCount > list.length) {
+            loadedCount = list.length;
+        }
+        this.loadedCount = loadedCount;
+        this.availableCount = list.length;
+        var newData = list.slice(0, loadedCount);
+        var spliceArgs = [0, this.length].concat(newData);
+        this.splice.apply(this, spliceArgs);
+    }
+
+    function refreshIfNeeded() {
+        if (this.evalId != globalEvalId) {
+            this.refreshNeeded = true;
+            this.evalId = globalEvalId;
+        }
+        if (this.refreshNeeded) {
+            this.refresh();
+            this.refreshNeeded = false;
+        }
+        return this;
+    }
+
+    function setFilter(filterExpr) {
+        if (!angular.Object.equals(this.filter, filterExpr)) {
+            this.filter = filterExpr;
+            this.refreshNeeded = true;
+        }
+    }
+
+    function setOrderBy(orderBy) {
+        if (!angular.Object.equals(this.orderBy, orderBy)) {
+            this.orderBy = orderBy;
+            this.refreshNeeded = true;
+        }
+    }
+
+    function loadNextPage() {
+        this.loadedCount = this.loadedCount + this.pageSize;
+        this.refreshNeeded = true;
+    }
+
+    function hasMorePages() {
+        this.refreshIfNeeded();
+        return this.loadedCount < this.availableCount;
+    }
+
+    function reset() {
+        this.loadedCount = 0;
+        this.refreshNeeded = true;
+    }
+
+    /**
+     * Returns the already loaded pages.
+     * Also includes filtering (second argument) and ordering (third argument),
+     * as the standard angular way does not work with paging.
+     *
+     * Does caching: Evaluates the filter and order expression only once in an eval cycle.
+     * ATTENTION: There can only be one paged list per original list.
+     */
+    angular.Array.paged = function(list, filter, orderBy) {
+        var pagedList = list.pagedList;
+        if (!pagedList) {
+            pagedList = createPagedList(list);
+            list.pagedList = pagedList;
+        }
+        pagedList.setFilter(filter);
+        pagedList.setOrderBy(orderBy);
+        pagedList.refreshIfNeeded();
+        return pagedList;
+
+    };
 });
 
 define('stng/events',['angular', 'stng/util'], function(angular, util) {
@@ -838,34 +976,100 @@ define('stng/events',['angular', 'stng/util'], function(angular, util) {
 });
 
 define('stng/waitDialog',['ext', 'angular'], function(Ext, angular) {
+    var showCalls = [];
+
     var loadDialog;
-    var defaultMessage = 'Please wait...';
+
+    function updateUi() {
+        if (loadDialog) {
+            loadDialog.hide();
+            loadDialog = null;
+        }
+        if (showCalls.length > 0) {
+            var lastCall = showCalls[showCalls.length - 1];
+            var options = {};
+            if (lastCall.msg) {
+                options.msg = lastCall.msg;
+            }
+            loadDialog = new Ext.LoadMask(Ext.getBody(), options);
+            loadDialog.show();
+            if (lastCall.callback) {
+                loadDialog.el.select('.x-mask').on('tap', lastCall.callback);
+            }
+        }
+    }
 
     /**
      *
      * @param msg (optional)
+     * @param tapCallback (optional)
      */
-    function show(msg) {
-        if (!msg) {
-            msg = defaultMessage;
+    function show() {
+        var msg, tapCallback;
+        if (typeof arguments[0] == 'string') {
+            msg = arguments[0];
         }
-        loadDialog = new Ext.LoadMask(Ext.getBody(), {msg:msg});
-        loadDialog.show();
+        if (typeof arguments[0] == 'function') {
+            tapCallback = arguments[0];
+        }
+        if (typeof arguments[1] == 'function') {
+            tapCallback = arguments[1];
+        }
+
+        showCalls.push({msg: msg, callback: tapCallback});
+        updateUi();
     }
 
     function hide() {
-        loadDialog.hide();
+        showCalls.pop();
+        updateUi();
+    }
+
+    /**
+     *
+     * @param promise
+     * @param msg (optional)
+     */
+    function waitFor(promise, msg) {
+        show();
+        promise.always(function() {
+            hide();
+        });
+    }
+
+    /**
+     *
+     * @param promise
+     * @param cancelData
+     * @param msg (optional)
+     */
+    function waitForWithCancel(promise, cancelData, msg) {
+        show(msg, function() {
+            promise.reject(cancelData);
+        });
+        promise.always(function() {
+            hide();
+        });
+    }
+
+    function hideAll() {
+        showCalls = [];
+        updateUi();
     }
 
     var res = {
         show: show,
-        hide: hide
+        hide: hide,
+        waitFor: waitFor,
+        waitForWithCancel:waitForWithCancel,
+        hideAll: hideAll
     };
+
     angular.service('$waitDialog', function() {
         return res;
     });
-    return res;
 
+    return res;
 });
 
 define('stng/input',['angular'], function(angular) {
@@ -878,14 +1082,28 @@ define('stng/input',['angular'], function(angular) {
 
     function getValue(component) {
         if (component.isChecked) {
-            return component.isChecked();
+            if (component.xtype==='radiofield') {
+                if (component.isChecked()) {
+                    return component.getValue();
+                } else {
+                    return undefined;
+                }
+            } else {
+                return component.isChecked();
+            }
         }
         return component.getValue();
     }
 
     function setValue(component, value) {
         if (component.setChecked) {
-            component.setChecked(value);
+            if (component.xtype==='radiofield') {
+                if (component.value == value) {
+                    component.setChecked(true);
+                }
+            } else {
+                component.setChecked(value);
+            }
         } else {
             component.setValue(value);
         }
@@ -897,6 +1115,7 @@ define('stng/input',['angular'], function(angular) {
             component.addListener('uncheck', listener);
         } else if (component.events.spin) {
             component.addListener('spin', listener);
+            component.addListener('change', listener);
         } else {
             component.addListener('change', listener);
         }
@@ -911,6 +1130,11 @@ define('stng/input',['angular'], function(angular) {
             var self = this;
             var scope = angular.element(self.el.dom).scope();
             var valueInScope;
+            // Note: We cannot use the $watch function here, for the following case:
+            // 1. value in scope: value0
+            // 2. value in ui is set to a value1 with <enter>-key bound to a controller action
+            // 3. controller action does something and resets the value to value0
+            // This case is not detected by the usual $watch logic!
             scope.$onEval(-1000, function() {
                 var newValue = scope.$get(self.name);
                 if (valueInScope!==newValue) {
@@ -920,11 +1144,7 @@ define('stng/input',['angular'], function(angular) {
             });
             addChangeListener(this, function() {
                 var value = getValue(self);
-                // This is needed for inputtexts in the following case:
-                // 1. value in scope: value0
-                // 2. value in ui is set to a value1 with <enter>-key bound to a controller action
-                // 3. controller action does something and resets the value to value0
-                // This case is not detected by the usual $watch logic!
+                // This is needed to allow the usecase above (why we cannot use $watch).
                 valueInScope = value;
                 scope.$set(self.name, value);
                 scope.$service("$updateView")();
@@ -941,6 +1161,56 @@ define('stng/stngStyles',['angular'], function() {
     angular.element(document).find('head').append('<style type=\"text/css\">' + styles + '</style>');
 });
 
+define('stng/sharedController',['angular'], function(angular) {
+    function findCtrlFunction(name) {
+        var parts = name.split('.');
+        var base = window;
+        var part;
+        for (var i = 0; i < parts.length; i++) {
+            part = parts[i];
+            base = base[part];
+        }
+        return base;
+    }
+
+    function sharedCtrl(rootScope, name) {
+        var ctrl = findCtrlFunction(name);
+        var instance = rootScope[name];
+        if (!instance) {
+            instance = rootScope.$new(ctrl);
+            rootScope[name] = instance;
+        }
+        return instance;
+    }
+
+    function parseSharedControllersExpression(expression) {
+        var pattern = /(.*?):(.*?)($|,)/g;
+        var match;
+        var hasData = false;
+        var controllers = {}
+        while (match = pattern.exec(expression)) {
+            hasData = true;
+            controllers[match[1]] = match[2];
+        }
+        if (!hasData) {
+            throw "Expression " + expression + " needs to have the syntax <name>:<controller>,...";
+        }
+        return controllers;
+    }
+
+    angular.directive('st:shared-controller', function(expression) {
+        this.scope(true);
+        var controllers = parseSharedControllersExpression(expression);
+        return function(element) {
+            var scope = this;
+            for (var name in controllers) {
+                scope[name] = sharedCtrl(scope.$root, controllers[name]);
+            }
+        }
+
+    });
+});
+
 // Wrapper module as facade for the internal modules.
 define('st-angular',[
     'angular',
@@ -950,13 +1220,14 @@ define('st-angular',[
     'stng/lists',
     'stng/navigation',
     'stng/if',
+    'stng/paging',
     'stng/repeat',
-    'stng/store',
-    'stng/setup',
+    'stng/settings',
     'stng/events',
     'stng/waitDialog',
     'stng/input',
-    'stng/stngStyles'
+    'stng/stngStyles',
+    'stng/sharedController'
 ], function(angular, util, compileIntegration) {
     compileIntegration.registerWidgets();
     return {
