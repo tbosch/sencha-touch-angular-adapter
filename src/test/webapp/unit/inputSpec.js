@@ -45,7 +45,7 @@ define(['unit/testutils'], function(testutils) {
                 expect(c.element.find("input").attr("checked")).toBeTruthy();
             });
 
-            it("should set the scope property from the widget on blur", function() {
+            it("should set the scope property from the widget on click", function() {
                 var c = testutils.compileAndRender('<st:checkboxfield name="someProp"></st:checkboxfield>');
                 expect(c.scope.someProp).toBeFalsy();
                 var input = c.element.find("input");
@@ -92,6 +92,37 @@ define(['unit/testutils'], function(testutils) {
                 expect(c.scope.someProp).toBe('11');
             });
 
+        });
+
+        describe('radiofield', function() {
+            it("should set the widget's value from the scope property", function() {
+                var c = testutils.compileAndRender('<st:radiofield name="someProp" value="1"/><st:radiofield name="someProp" value="2"/>');
+                c.scope.someProp = 1;
+                expect(c.widgets[0].isChecked()).toBeFalsy();
+                expect(c.elements[0].find("input").attr("checked")).toBeFalsy();
+                expect(c.widgets[1].isChecked()).toBeFalsy();
+                expect(c.elements[1].find("input").attr("checked")).toBeFalsy();
+                c.scope.$eval();
+                expect(c.widgets[0].isChecked()).toBeTruthy();
+                expect(c.elements[0].find("input").attr("checked")).toBeTruthy();
+                expect(c.widgets[1].isChecked()).toBeFalsy();
+                expect(c.elements[1].find("input").attr("checked")).toBeFalsy();
+                c.scope.someProp = 2;
+                c.scope.$eval();
+                expect(c.widgets[0].isChecked()).toBeFalsy();
+                expect(c.elements[0].find("input").attr("checked")).toBeFalsy();
+                expect(c.widgets[1].isChecked()).toBeTruthy();
+                expect(c.elements[1].find("input").attr("checked")).toBeTruthy();
+            });
+
+            it("should set the scope property from the widget on click", function() {
+                var c = testutils.compileAndRender('<st:radiofield name="someProp" value="1"/><st:radiofield name="someProp" value="2"/>');
+                expect(c.scope.someProp).toBeFalsy();
+                jasmine.ui.simulate(c.elements[0].find("input")[0], "click");
+                expect(c.scope.someProp).toBe("1");
+                jasmine.ui.simulate(c.elements[1].find("input")[0], "click");
+                expect(c.scope.someProp).toBe("2");
+            });
         });
 
     });

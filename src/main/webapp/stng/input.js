@@ -8,14 +8,28 @@ define(['angular'], function(angular) {
 
     function getValue(component) {
         if (component.isChecked) {
-            return component.isChecked();
+            if (component.xtype==='radiofield') {
+                if (component.isChecked()) {
+                    return component.getValue();
+                } else {
+                    return undefined;
+                }
+            } else {
+                return component.isChecked();
+            }
         }
         return component.getValue();
     }
 
     function setValue(component, value) {
         if (component.setChecked) {
-            component.setChecked(value);
+            if (component.xtype==='radiofield') {
+                if (component.value == value) {
+                    component.setChecked(true);
+                }
+            } else {
+                component.setChecked(value);
+            }
         } else {
             component.setValue(value);
         }

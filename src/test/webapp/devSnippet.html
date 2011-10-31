@@ -12,22 +12,11 @@
 </head>
 <body>
 
-<st:store id="myStore" fields="key,value">
-    <st:entry key="entry1" value="{{1+2}}"></st:entry>
-    <st:entry key="entry2" value="Hallo2"></st:entry>
-</st:store>
-
 <st:panel fullscreen="true">
-    <st:selectfield name="mySelect" store="store:myStore" display-field="value" value-field="key">
-
-    </st:selectfield>
-
-    <st:textfield name="myField"></st:textfield>
-
-    <st:custom>
-        {{mySelect}}
-
-    </st:custom>
+    <st:radiofield name="mySelect" value="1">
+    </st:radiofield>
+    <st:radiofield name="mySelect" value="2">
+    </st:radiofield>
 </st:panel>
 
 

@@ -25,7 +25,6 @@ Some parts are still missing:
 - Enabled/Disabled-Handling: This would be just a directive like `st:enabled` that calls Ext.Component.setEnabled().
 - Validation Markers: ng:validate does not work here... In angular 0.9.19 this is tricky to use, in angular 0.10
   this should be easier...
-- Radiogroups: Does not yet return the correct value in databinding.
 - Selectfields: Does not work yet. This would be a subtag like `<st:option key="asdf" value="asdf">`
   that can be used with `ng:repeat`.
 - list and grouped-list do not yet support automatically marking pressed items and the indexbar at the right.
