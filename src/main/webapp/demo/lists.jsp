@@ -59,11 +59,11 @@
         </p>
     </st:custom>
 
-    <st:simple-list scroll="false">
+    <st:list scroll="false">
         <div ng:repeat="item in items" st:selected="isSelected(item)" st:event="{tap:'itemTap(item)'}">
             {{item.name}}
         </div>
-    </st:simple-list>
+    </st:list>
 
 
     <st:custom>
@@ -72,11 +72,11 @@
         </p>
     </st:custom>
 
-    <st:simple-grouped-list scroll="false">
+    <st:grouped-list scroll="false">
         <div group="{{group.key}}" ng:repeat="group in groups()">
             <div ng:repeat="item in group.items" st:event="{tap:'itemTap(item)'}" st:selected="isSelected(item)">
                 {{item.name}}
             </div>
         </div>
-    </st:simple-grouped-list>
+    </st:grouped-list>
 </st:panel>

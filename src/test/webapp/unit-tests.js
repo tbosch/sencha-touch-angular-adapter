@@ -5,6 +5,7 @@ define([
     'st-angular',
     'unit/testutils',
     'unit/inputSpec',
+    'unit/listSpec',
     'unit/compileIntegrationSpec',
     'unit/ifSpec',
     'unit/pagingSpec',

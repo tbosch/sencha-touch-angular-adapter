@@ -1,4 +1,4 @@
-define(['unit/testutils'], function(testutils) {
+define(['unit/testutils', 'stng/compileIntegration'], function(testutils, compileIntegration) {
 
     describe('compileIntegration', function() {
         describe('attributes of sencha tags', function() {
@@ -26,6 +26,18 @@ define(['unit/testutils'], function(testutils) {
                 var c = testutils.compileAndRender('<st:button someprop="someValue"></st:button>');
                 expect(c.widget.someprop).toBe("someValue");
                 expect(c.element.attr('someprop')).toBeUndefined();
+            });
+        });
+
+        describe("override sencha widgets", function() {
+            it("should use the ng-prefixed version instead of the normal version", function() {
+                var someWidgetClass = Ext.extend(Ext.AngularComponent, {});
+                var someNgWidgetClass = Ext.extend(Ext.AngularComponent, {});
+                Ext.reg('some-widget', someNgWidgetClass);
+                Ext.reg('ng-some-widget', someNgWidgetClass);
+                compileIntegration.registerWidgets();
+                var c = testutils.compileAndRender('<st:some-widget></st:some-widget>');
+                expect(c.widget.xtype).toBe("ng-some-widget");
             });
         });
 

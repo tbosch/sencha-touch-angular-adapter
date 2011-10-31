@@ -1,14 +1,31 @@
 define(['angular', 'ext', 'stng/util', 'stng/settings', 'stng/globalScope'], function(angular, Ext, util, settings, globalScope) {
     var $ = util.jqLite;
 
+    var angularOverrideWidgetTypePrefix = "ng-";
+
     function registerWidgets() {
-        for (var type in Ext.ComponentMgr.types) {
-            registerWidget(type);
+        var types = Ext.ComponentMgr.types;
+        for (var type in types) {
+            if (!hasAngularOverrideWidget(types, type)) {
+                registerWidget(type);
+            }
         }
     }
 
+    function xtype2angularWidgetName(xtype) {
+        if (xtype.indexOf(angularOverrideWidgetTypePrefix)===0) {
+            xtype = xtype.substring(3);
+        }
+        return xtype;
+    }
+
+    function hasAngularOverrideWidget(allTypes, type) {
+        return !!allTypes[angularOverrideWidgetTypePrefix+type];
+    }
+
     function registerWidget(type) {
-        angular.widget('st:'+type, function(element) {
+        var widgetName = xtype2angularWidgetName(type);
+        angular.widget('st:'+widgetName, function(element) {
             return compileWidget.call(this, type, element);
         })
     }

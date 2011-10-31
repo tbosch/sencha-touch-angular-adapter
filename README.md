@@ -149,18 +149,18 @@ or using `$watch`.
 This widget just takes all child elements and wraps them into a sencha component. By this, custom html can be displayed.
 
 
-### `<st:simple-list>`
+### `<st:list>`
 As we are not using stores any more, the list component was recreated. Usage:
 
-    <st:simple-list>
+    <st:list>
         <div ng:repeat="item in items">
             {{item.name}}
         </div>
-    </st:simple-list>
+    </st:list>
 
 The widget creates for every child `<div>` a list entry. That `<div>` can have abritary html content.
 
-### `<st:simple-grouped-list>`
+### `<st:grouped-list>`
 Grouped list component. Usage:
 
     <st:simple-grouped-list>
@@ -169,7 +169,7 @@ Grouped list component. Usage:
                 {{item.name}}
             </div>
         </div>
-    </st:simple-grouped-list>
+    </st:grouped-list>
 
 The widget creates for every child `<div>` a group entry with the heading of the `group` attribute.
 All child `<div>`s of those groups are then styled as normal list entry.

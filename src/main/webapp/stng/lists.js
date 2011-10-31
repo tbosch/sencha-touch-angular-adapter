@@ -1,10 +1,31 @@
 define(['ext', 'stng/util', 'stng/customComponent'], function(Ext, util) {
     var $ = util.jqLite;
 
-    function wrapInner(element, newElement) {
-        var oldChildren = element.children();
-        element.append(newElement);
-        newElement.append(oldChildren);
+    function isElement(element) {
+        return element[0].nodeType === 1;
+    }
+
+    // Does not exist in jQLite of angular...
+    function contents(element) {
+        var res = [];
+        var nodes;
+        for (var i=0; i<element.length; i++) {
+            nodes = element[i].childNodes;
+            for (var j=0; j<nodes.length; j++) {
+                res.push(nodes.item(j));
+            }
+        }
+        return $(res);
+    }
+
+    function wrapInner(elements, newElementString) {
+        var el, newEl;
+        for (var i=0; i<elements.length; i++) {
+            el = elements.eq(i);
+            newEl = $(newElementString);
+            newEl.append(contents(el));
+            el.append(newEl);
+        }
     }
 
     /**
@@ -28,13 +49,14 @@ define(['ext', 'stng/util', 'stng/customComponent'], function(Ext, util) {
     Ext.AngularList = Ext.extend(Ext.AngularBaseList, {
         initContent: function() {
             Ext.AngularList.superclass.initContent.call(this);
-            var childs = $(this.getTargetEl().dom).children();
+            var el = $(this.getTargetEl().dom);
+            var childs = el.children();
             childs.addClass('x-list-item');
-            wrapInner(childs, $('<div class="x-list-item-body"></div>'));
+            wrapInner(childs, '<div class="x-list-item-body"></div>');
         }
     });
 
-    Ext.reg('simple-list', Ext.AngularList);
+    Ext.reg('ng-list', Ext.AngularList);
 
     Ext.AngularGroupedList = Ext.extend(Ext.AngularBaseList, {
         initContent: function() {
@@ -42,15 +64,17 @@ define(['ext', 'stng/util', 'stng/customComponent'], function(Ext, util) {
             var groupChilds = $(this.getTargetEl().dom).children();
             var groupChild, groupAttr, childs;
             for (var i = 0; i < groupChilds.length; i++) {
-                groupChild = $(groupChilds[i]);
-                if (groupChild[0].nodeName==='DIV') {
+                groupChild = groupChilds.eq(i);
+                if (isElement(groupChild)) {
                     groupChild.addClass('x-list-group');
+
                     groupAttr = groupChild.attr('group');
                     groupChild.removeAttr('group');
-                    childs = groupChild.children('div');
+
+                    childs = groupChild.children();
                     childs.addClass('x-list-item');
-                    wrapInner(childs, $('<div class="x-list-item-body"></div>'));
-                    wrapInner(groupChild, $('<div class="x-list-group-items"></div>'));
+                    wrapInner(childs, '<div class="x-list-item-body"></div>');
+                    wrapInner(groupChild, '<div class="x-list-group-items"></div>');
                     groupChild.prepend('<h3 class="x-list-header">' + groupAttr + '</h3>');
                 }
             }
@@ -58,7 +82,7 @@ define(['ext', 'stng/util', 'stng/customComponent'], function(Ext, util) {
 
     });
 
-    Ext.reg('simple-grouped-list', Ext.AngularGroupedList);
+    Ext.reg('ng-grouped-list', Ext.AngularGroupedList);
 
     angular.directive('st:selected', function(expression) {
         return function(element) {
