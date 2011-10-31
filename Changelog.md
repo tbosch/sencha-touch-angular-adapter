@@ -25,7 +25,9 @@ Added `st:shared-controller`.
 
 Added `st:if`
 
-Added st:radiofield support.
+Added `st:radiofield` support.
+
+Added `st:enabled` support.
 
 
 0.9.1

@@ -12,5 +12,6 @@ define([
     'unit/pagingSpec',
     'unit/sharedControllerSpec',
     'unit/navigationSpec',
-    'unit/waitDialogSpec'
+    'unit/waitDialogSpec',
+    'unit/disabledSpec'
 ]);

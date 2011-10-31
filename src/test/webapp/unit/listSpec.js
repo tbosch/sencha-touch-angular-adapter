@@ -78,4 +78,18 @@ define(['unit/testutils'], function(testutils) {
         });
 
     });
+
+    describe('st:selected', function() {
+        it("should add x-item-selected if selected", function() {
+            var c = testutils.compileAndRender('<st:textfield name="someProp" st:selected="selected"></st:textfield>');
+            var scope = c.scope;
+            scope.selected = true;
+            scope.$eval();
+            expect(c.element.hasClass("x-item-selected")).toBeTruthy();
+            scope.selected = false;
+            scope.$eval();
+            expect(c.element.hasClass("x-item-selected")).toBeFalsy();
+
+        });
+    });
 });

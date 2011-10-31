@@ -14,7 +14,8 @@ define([
     'stng/waitDialog',
     'stng/input',
     'stng/stngStyles',
-    'stng/sharedController'
+    'stng/sharedController',
+    'stng/disabled'
 ], function(angular, util, compileIntegration) {
     compileIntegration.registerWidgets();
     return {

@@ -22,7 +22,6 @@ Missing parts / Restrictions
 
 Some parts are still missing:
 
-- Enabled/Disabled-Handling: This would be just a directive like `st:enabled` that calls Ext.Component.setEnabled().
 - Validation Markers: ng:validate does not work here... In angular 0.9.19 this is tricky to use, in angular 0.10
   this should be easier...
 - Selectfields: Does not work yet. This would be a subtag like `<st:option key="asdf" value="asdf">`
@@ -181,6 +180,9 @@ Those components can be bound, just like usual in angular, via the `name` attrib
 ### Directive `st:selected="expression"`
 Marks those elements for which the expression evaluates to true with the css class that is used in sencha
 for selected list entries.
+
+### Directive `st:enabled="expression"`
+Enables or disables a widget based on the evaluation of the given expression.
 
 ### Directive `st:event="{event1:'handler1',event2:'handler2',...}"`
 Central directive for event-handling. The event names can either be event names of sencha widgets (e.g. `activated` for panels),

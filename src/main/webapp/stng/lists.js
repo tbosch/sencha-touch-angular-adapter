@@ -87,7 +87,6 @@ define(['ext', 'stng/util', 'stng/customComponent'], function(Ext, util) {
     angular.directive('st:selected', function(expression) {
         return function(element) {
             var scope = this;
-            //var listElement = element.parents('.x-list-item');
             scope.$watch(expression, function(value) {
                 if (value) {
                     element.addClass('x-item-selected');
