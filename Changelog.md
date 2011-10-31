@@ -10,9 +10,6 @@ The options that are used to create the sencha widget are appended as a comment 
 The application requires the meta tag `<meta name="auto-start" content="true">` to be present.
 This is needed to prevent initialization during unit tests.
 
-TODO: revert this! `<st:list>` -> `<st:simple-list>`
-TODO: revert this! `<st:grouped-list>` -> `<st:simple-grouped-list>`
-
 CSS-Bugfix for `<st:spacer>` (did not work before).
 
 `st:event` now takes the handlers as json.
