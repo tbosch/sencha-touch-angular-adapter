@@ -1,4 +1,6 @@
-define(['angular'], function(angular) {
+define(['angular', 'stng/util', 'ext'], function(angular, util, Ext) {
+    var $ = util.jqLite;
+
     // deactivate angulars normal input handling
     angular.widget('input', function() {
         return function() {
@@ -31,6 +33,9 @@ define(['angular'], function(angular) {
                 component.setChecked(value);
             }
         } else {
+            if (component.xtype==="selectfield") {
+                component.refreshOptions();
+            }
             component.setValue(value);
         }
     }
@@ -77,4 +82,23 @@ define(['angular'], function(angular) {
             });
         }
     };
+
+    function shallowCloneArray(array) {
+        return Array.prototype.slice.call(array);
+    }
+
+    var selectProto = Ext.form.Select.prototype;
+    selectProto.refreshOptions = function() {
+        var el = $(this.fieldEl.dom);
+        var scope = el.scope();
+        var options = shallowCloneArray(scope.$eval(this.options));
+
+        this.setOptions(options);
+    };
+    var oldShowComponent = selectProto.showComponent;
+    selectProto.showComponent = function() {
+        this.refreshOptions();
+        return oldShowComponent.apply(this, arguments);
+    };
+
 });

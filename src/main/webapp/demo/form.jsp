@@ -25,8 +25,7 @@
         <st:urlfield name="url" label="Url" place-holder="http://sencha.com" user-clear-icon=true></st:urlfield>
         <st:checkboxfield name="cool" label="Cool" value=true></st:checkboxfield>
         <st:spinnerfield name="spinner" label="Spinner"></st:spinnerfield>
-        <st:selectfield name="rank" label="Rank">
-            <st:option ng:repeat="rank in rankStore" value="{{rank.rank}}" text="{{rank.title}}"></st:option>
+        <st:selectfield name="rank" label="Rank" display-field="title" value-field="rank" options="[{rank: 'master', title: 'Master'},{rank: 'teacher', title: 'Instructor'}]" >
         </st:selectfield>
         <st:hiddenfield name="secret" value="false"></st:hiddenfield>
         <st:textareafield name="bio" label="Bio" max-length="60" max-rows="10"></st:textareafield>
@@ -46,9 +45,7 @@
     </st:fieldset>
 
     <st:fieldset title="Single Select (in fieldset)">
-        <st:selectfield name="options">
-            <st:option value="1" text="This is just a big select with text that is overflowing"></st:option>
-            <st:option value="2" text="This is just a big select with text that is overflowing"></st:option>
+        <st:selectfield name="options2" display-field="text" value-field="value" options="[{value:'1', text:'This is just a big select with text that is overflowing'},{value:'2',text:'This is just a big select with text that is overflowing'}]">
         </st:selectfield>
     </st:fieldset>
 

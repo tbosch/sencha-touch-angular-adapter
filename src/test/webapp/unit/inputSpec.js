@@ -125,6 +125,33 @@ define(['unit/testutils'], function(testutils) {
             });
         });
 
+        describe('selectfield', function() {
+            it("should refresh the options when the value changes and show the selected option", function() {
+                var c = testutils.compileAndRender('<st:selectfield name="someSelect" options="someOptions" display-field="label" value-field="value"/>');
+                c.scope.someOptions = [{value: 'Value1', label: 'Label1'}];
+                c.scope.someSelect = 'Value1';
+                c.scope.$eval();
+                expect(c.element.find("input").val()).toBe("Label1");
+            });
+
+            it("should not modify the options in the scope", function() {
+                var c = testutils.compileAndRender('<st:selectfield name="someSelect" options="someOptions" display-field="label" value-field="value"/>');
+                c.scope.someOptions = [{value: 'Value1', label: 'Label1'}];
+                c.scope.someSelect = 'Value1';
+                c.scope.$eval();
+                expect(c.scope.someOptions).toEqual([{value: 'Value1', label: 'Label1'}]);
+            });
+
+            it("should show and refresh the possible options in a popup", function() {
+                var c = testutils.compileAndRender('<st:selectfield name="someSelect" options="someOptions" display-field="label" value-field="value"/>');
+                c.scope.someOptions = [{value: 'Value1', label: 'Label1'}];
+                c.scope.someSelect = 'Value1';
+                c.widget.showComponent();
+                expect(c.widget.store.getCount()).toBe(1);
+                expect(c.widget.store.getAt(0).data).toEqual(c.scope.someOptions[0]);
+            });
+        });
+
     });
 
 });

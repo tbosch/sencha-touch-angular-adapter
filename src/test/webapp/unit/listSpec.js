@@ -68,7 +68,6 @@ define(['unit/testutils'], function(testutils) {
         });
         it("should add the group attribute of groups as a h3 child", function() {
             var c = testutils.compileAndRender('<st:grouped-list scroll="false"><div id="group1" group="g1"/><div id="group2" group="g2"/></st:grouped-list>');
-            console.log(c.element.find("#group1").prev());
             expect(c.element.find("#group1").children("h3").hasClass("x-list-header")).toBeTruthy();
             expect(c.element.find("#group1").children("h3").text()).toBe("g1");
             expect(c.element.find("#group1").attr("group")).toBeUndefined();

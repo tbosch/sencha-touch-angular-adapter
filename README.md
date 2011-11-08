@@ -16,16 +16,15 @@ Please also see [jquery-mobile-angular-adapter](https://github.com/tigbro/jquery
 Missing parts / Restrictions
 ------------
 - Due to the nature of angular this is intended to be used WITHOUT the Sencha Touch stores.
-  Please use `ng:repeat` instead.
-- Due to their direct link to Stores a new list and grouped-list widget was created that just displays
-  it`s content.
+  - Due to their direct link to Stores a new list and grouped-list widget was created that just displays
+    it's content. Use `ng:repeat` for databinding the rows to the model.
+  - Due to it's direct link to stores the `<st:selectfield>` uses an angular-expression in it's options attribute, which
+    gets refreshed whenever the popup opens or the value changes.
 
 Some parts are still missing:
 
 - Validation Markers: ng:validate does not work here... In angular 0.9.19 this is tricky to use, in angular 0.10
   this should be easier...
-- Selectfields: Does not work yet. This would be a subtag like `<st:option key="asdf" value="asdf">`
-  that can be used with `ng:repeat`.
 - list and grouped-list do not yet support automatically marking pressed items and the indexbar at the right.
 
 Sample
@@ -173,6 +172,14 @@ Grouped list component. Usage:
 The widget creates for every child `<div>` a group entry with the heading of the `group` attribute.
 All child `<div>`s of those groups are then styled as normal list entry.
 That `<div>` within the list entries can have abritary html content.
+
+### `<st:selectfield>`
+The `selectfield` expects an angular expression in the attribute `options` that evaluates to an array.
+The expression is evaluated whenever the value of the select changes in the model, or the popup is shown.
+By this, selectfields can be used without stores.
+
+E.g.
+`<st:selectfield name="rank" label="Rank" display-field="title" value-field="rank" options="[{rank: 'master', title: 'Master'}]">`
 
 ### Input components like `textfield` ...
 Those components can be bound, just like usual in angular, via the `name` attribute. This does bidirectional databinding.

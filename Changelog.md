@@ -29,6 +29,8 @@ Added `st:radiofield` support.
 
 Added `st:enabled` support.
 
+Added `<st:selectfield>` with special attribute `options` as angular expression, so that it can be used without stores.
+
 
 0.9.1
 -------------
