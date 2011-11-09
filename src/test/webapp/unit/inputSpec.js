@@ -57,6 +57,46 @@ define(['unit/testutils'], function(testutils) {
             });
         });
 
+        describe('urlfield', function() {
+            var someValue = "http://asdf.de";
+            it("should set the widget's value from the scope property", function() {
+                var c = testutils.compileAndRender('<st:urlfield name="someProp"></st:urlfield>');
+                c.scope.someProp = someValue;
+                c.scope.$eval();
+                expect(c.widget.getValue()).toBe(someValue);
+                expect(c.element.find("input").val()).toBe(someValue);
+            });
+
+            it("should set the scope property from the widget on change", function() {
+                var c = testutils.compileAndRender('<st:urlfield name="someProp"></st:urlfield>');
+                expect(c.scope.someProp).toBeFalsy();
+                var input = c.element.find("input");
+                input.val(someValue);
+                jasmine.ui.simulate(input[0], "change");
+                expect(c.scope.someProp).toBe(someValue);
+            });
+        });
+
+        describe('emailfield', function() {
+            var someValue = "asdf@afd.de";
+            it("should set the widget's value from the scope property", function() {
+                var c = testutils.compileAndRender('<st:emailfield name="someProp"></st:emailfield>');
+                c.scope.someProp = someValue;
+                c.scope.$eval();
+                expect(c.widget.getValue()).toBe(someValue);
+                expect(c.element.find("input").val()).toBe(someValue);
+            });
+
+            it("should set the scope property from the widget on change", function() {
+                var c = testutils.compileAndRender('<st:emailfield name="someProp"></st:emailfield>');
+                expect(c.scope.someProp).toBeFalsy();
+                var input = c.element.find("input");
+                input.val(someValue);
+                jasmine.ui.simulate(input[0], "change");
+                expect(c.scope.someProp).toBe(someValue);
+            });
+        });
+
         describe('checkboxfield', function() {
             it("should set the widget's value from the scope property", function() {
                 var c = testutils.compileAndRender('<st:checkboxfield name="someProp"></st:checkboxfield>');

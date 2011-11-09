@@ -33,6 +33,8 @@ Added `<st:selectfield>` with special attribute `options` as angular expression,
 
 Added `ng:validate` and `ng:format` support.
 
+Added support for `<st:numberfield>`, `<st:emailfield>` and `<st:urlfield>`
+
 0.9.1
 -------------
 - Update the syntax to use elements instead of the st:xtype attribute

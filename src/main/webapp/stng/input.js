@@ -1,6 +1,26 @@
 define(['angular', 'stng/util', 'ext'], function(angular, util, Ext) {
     var $ = util.jqLite;
 
+    var textWidgetTypes = {text: true, number: true, url: true, email: true};
+    var oldInput = angular.widget("input");
+    angular.widget("input", function(element) {
+        var type = element[0].type;
+        if (textWidgetTypes[type]) {
+            type = "text";
+        }
+        // We fake an element during compile phase, as setting the type attribute
+        // is not allowed by the dom (although it works in many browsers...)
+        element[0] = {
+            type: type
+        };
+        var oldBinder = oldInput.apply(this, arguments);
+        var res = function(element) {
+            return oldBinder.apply(this, arguments);
+        };
+        res.$inject = oldBinder.$inject;
+        return res;
+    });
+
     function after(object, functionName, newFunction) {
         var oldFunction = object[functionName];
         object[functionName] = function() {

@@ -21,8 +21,6 @@ Restrictions
   - Due to it's direct link to stores the `<st:selectfield>` uses an angular-expression in it's options attribute, which
     gets refreshed whenever the popup opens or the value changes.
 
-Some parts are still missing:
-
 - list and grouped-list do not yet support automatically marking pressed items and the indexbar at the right.
 
 Sample
