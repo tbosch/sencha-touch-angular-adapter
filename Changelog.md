@@ -31,6 +31,7 @@ Added `st:enabled` support.
 
 Added `<st:selectfield>` with special attribute `options` as angular expression, so that it can be used without stores.
 
+Added `ng:validate` and `ng:format` support.
 
 0.9.1
 -------------

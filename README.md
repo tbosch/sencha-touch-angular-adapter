@@ -13,7 +13,7 @@ Note that this just needs angular and sencha touch as dependencies, but no jquer
 
 Please also see [jquery-mobile-angular-adapter](https://github.com/tigbro/jquery-mobile-angular-adapter).
 
-Missing parts / Restrictions
+Restrictions
 ------------
 - Due to the nature of angular this is intended to be used WITHOUT the Sencha Touch stores.
   - Due to their direct link to Stores a new list and grouped-list widget was created that just displays
@@ -23,8 +23,6 @@ Missing parts / Restrictions
 
 Some parts are still missing:
 
-- Validation Markers: ng:validate does not work here... In angular 0.9.19 this is tricky to use, in angular 0.10
-  this should be easier...
 - list and grouped-list do not yet support automatically marking pressed items and the indexbar at the right.
 
 Sample

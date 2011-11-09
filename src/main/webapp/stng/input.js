@@ -18,6 +18,23 @@ define(['angular', 'stng/util', 'ext'], function(angular, util, Ext) {
         };
     }
 
+    before(Ext.form.Field.prototype, "afterRender", function() {
+        if (!this.el || !this.fieldEl) {
+            return;
+        }
+        var el = $(this.el.dom);
+        var fieldEl = $(this.fieldEl.dom);
+        var copyAttrNames = ["ng:validate", "ng:format"];
+        for (var i=0, attrName, attrValue; i<copyAttrNames.length; i++) {
+            attrName = copyAttrNames[i];
+            attrValue = el.attr(attrName);
+            if (attrValue) {
+                fieldEl.attr(attrName, attrValue);
+            }
+        }
+    });
+
+
     after(Ext.form.Spinner.prototype, 'initEvents', function() {
         var self = this;
         var scope = angular.element(self.el.dom).scope();

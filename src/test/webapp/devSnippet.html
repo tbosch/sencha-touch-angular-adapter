@@ -2,7 +2,6 @@
 <html xmlns:ng="http://angularjs.org" xmlns:st="http://sencha-touch-angular.org">
 <head>
     <title>Sencha Toys</title>
-
     <link rel="stylesheet" href="lib/sencha-touch.css"/>
     <meta name="auto-start" content="true">
     <script src="lib/angular-0.9.19.js" autobind></script>
@@ -13,9 +12,7 @@
 <body>
 
 <st:panel fullscreen="true" ng:init="someOptions = [{label:'label1',value:'value1'},{label:'label2',value:'value2'}]">
-    <st:selectfield name="someSelect" options="someOptions" display-field="label" value-field="value"></st:selectfield>
-
-    <st:textfield name="someSelect"></st:textfield>
+    <st:textfield name="myName" ng:validate="number"></st:textfield>
 </st:panel>
 
 

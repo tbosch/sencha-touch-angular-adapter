@@ -1,7 +1,7 @@
 define(['unit/testutils'], function(testutils) {
     describe("input", function() {
-        var someValue = "someValue";
         describe('textfield', function() {
+            var someValue = "someValue";
             it("should set the widget's value from the scope property", function() {
                 var c = testutils.compileAndRender('<st:textfield name="someProp"></st:textfield>');
                 c.scope.someProp = someValue;
@@ -10,8 +10,45 @@ define(['unit/testutils'], function(testutils) {
                 expect(c.element.find("input").val()).toBe(someValue);
             });
 
-            it("should set the scope property from the widget on blur", function() {
+            it("should set the scope property from the widget on change", function() {
                 var c = testutils.compileAndRender('<st:textfield name="someProp"></st:textfield>');
+                expect(c.scope.someProp).toBeFalsy();
+                var input = c.element.find("input");
+                input.val(someValue);
+                jasmine.ui.simulate(input[0], "change");
+                expect(c.scope.someProp).toBe(someValue);
+            });
+
+            it("should use the ng:validate directive", function() {
+                var c = testutils.compileAndRender('<st:textfield name="someProp" ng:validate="number"></st:textfield>');
+                var input = c.element.find("input");
+                var someErrorValue = "asdf";
+                input.val(someErrorValue);
+                jasmine.ui.simulate(input[0], "change");
+                expect(c.scope.$service("$invalidWidgets").length).toBe(1);
+                expect(c.scope.$service("$invalidWidgets")[0][0]).toBe(c.widget.fieldEl.dom);
+            });
+            it("should use the ng:format directive", function() {
+                var c = testutils.compileAndRender('<st:textfield name="someProp" ng:format="number"></st:textfield>');
+                var input = c.element.find("input");
+                input.val("123");
+                jasmine.ui.simulate(input[0], "change");
+                expect(c.scope.someProp).toBe(123);
+            });
+        });
+
+        describe('numberfield', function() {
+            var someValue = "123";
+            it("should set the widget's value from the scope property", function() {
+                var c = testutils.compileAndRender('<st:numberfield name="someProp"></st:numberfield>');
+                c.scope.someProp = someValue;
+                c.scope.$eval();
+                expect(c.widget.getValue()).toBe(someValue);
+                expect(c.element.find("input").val()).toBe(someValue);
+            });
+
+            it("should set the scope property from the widget on change", function() {
+                var c = testutils.compileAndRender('<st:numberfield name="someProp"></st:numberfield>');
                 expect(c.scope.someProp).toBeFalsy();
                 var input = c.element.find("input");
                 input.val(someValue);
