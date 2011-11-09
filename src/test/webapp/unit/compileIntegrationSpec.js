@@ -49,33 +49,33 @@ define(['unit/testutils', 'stng/compileIntegration'], function(testutils, compil
             expect(spans.text()).toBe(c.scope.someProp);
         });
         it("should keep css classes defined at the sencha tags", function() {
-            var c = testutils.compileAndRender('<st:textfield class="someClass"></st:textfield>');
+            var c = testutils.compileAndRender('<st:textfield class="someClass" name="someProp"></st:textfield>');
             expect(c.element.hasClass('someClass'));
         });
 
         it("should add childs to parent containers", function() {
-            var c = testutils.compileAndRender('<st:panel><st:textfield></st:textfield></st:panel>');
+            var c = testutils.compileAndRender('<st:panel><st:textfield name="someProp"></st:textfield></st:panel>');
             expect(c.widget.items.length).toBe(1);
             expect(c.widget.items.get(0).xtype).toBe("textfield");
         });
 
         it("should add childs with dock attribute to parent containers as docked", function() {
-            var c = testutils.compileAndRender('<st:panel><st:textfield dock="true"></st:textfield></st:panel>');
+            var c = testutils.compileAndRender('<st:panel><st:textfield name="someProp" dock="true"></st:textfield></st:panel>');
             expect(c.widget.items.length).toBe(0);
             expect(c.widget.dockedItems.length).toBe(1);
             expect(c.widget.dockedItems.get(0).xtype).toBe("textfield");
         });
         it("should not add floating childs to parent containers", function() {
-            var c = testutils.compileAndRender('<st:panel><st:textfield floating="true"></st:textfield></st:panel>');
+            var c = testutils.compileAndRender('<st:panel><st:textfield name="someProp" floating="true"></st:textfield></st:panel>');
             expect(c.widget.items.length).toBe(0);
             expect(c.widget.dockedItems.length).toBe(0);
         });
 
         describe("repeat", function() {
             it("should insert new elements with ng:repeat at the original position", function() {
-                var c = testutils.compileAndRender('<st:panel><st:textfield class="first"></st:textfield>' +
-                    '<st:textfield class="middle" ng:repeat="i in list"></st:textfield>' +
-                    '<st:textfield class="last"></st:textfield></st:panel>');
+                var c = testutils.compileAndRender('<st:panel><st:textfield name="someProp" class="first"></st:textfield>' +
+                    '<st:textfield name="someProp2" class="middle" ng:repeat="i in list"></st:textfield>' +
+                    '<st:textfield name="someProp3" class="last"></st:textfield></st:panel>');
                 var items = c.widget.items;
                 expect(items.length).toBe(2);
                 expect(items.get(0).el.hasCls("first")).toBeTruthy();
@@ -96,7 +96,7 @@ define(['unit/testutils', 'stng/compileIntegration'], function(testutils, compil
             });
             it("should destroy sencha widgets when the element is removed", function() {
                 var c = testutils.compileAndRender('<st:panel>' +
-                    '<st:textfield ng:repeat="i in list"></st:textfield>' +
+                    '<st:textfield name="someProp" ng:repeat="i in list"></st:textfield>' +
                     '</st:panel>');
                 c.scope.list = [1];
                 c.scope.$eval();

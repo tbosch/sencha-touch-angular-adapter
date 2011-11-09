@@ -1,104 +1,86 @@
 define(['angular', 'stng/util', 'ext'], function(angular, util, Ext) {
     var $ = util.jqLite;
 
-    // deactivate angulars normal input handling
-    angular.widget('input', function() {
-        return function() {
+    function after(object, functionName, newFunction) {
+        var oldFunction = object[functionName];
+        object[functionName] = function() {
+            var res = oldFunction.apply(this, arguments);
+            newFunction.apply(this, arguments);
+            return res;
+        };
+    }
 
-        }
+    function before(object, functionName, newFunction) {
+        var oldFunction = object[functionName];
+        object[functionName] = function() {
+            newFunction.apply(this, arguments);
+            return oldFunction.apply(this, arguments);
+        };
+    }
+
+    after(Ext.form.Spinner.prototype, 'initEvents', function() {
+        var self = this;
+        var scope = angular.element(self.el.dom).scope();
+        this.addListener('spin', function() {
+            scope.$set(self.name, self.getValue());
+            scope.$service("$updateView")();
+        });
     });
 
-    function getValue(component) {
-        if (component.isChecked) {
-            if (component.xtype==='radiofield') {
-                if (component.isChecked()) {
-                    return component.getValue();
-                } else {
-                    return undefined;
-                }
-            } else {
-                return component.isChecked();
-            }
-        }
-        return component.getValue();
-    }
-
-    function setValue(component, value) {
-        if (component.setChecked) {
-            if (component.xtype==='radiofield') {
-                if (component.value == value) {
-                    component.setChecked(true);
-                }
-            } else {
-                component.setChecked(value);
-            }
-        } else {
-            if (component.xtype==="selectfield") {
-                component.refreshOptions();
-            }
-            component.setValue(value);
-        }
-    }
-
-    function addChangeListener(component, listener) {
-        if (component.events.check) {
-            component.addListener('check', listener);
-            component.addListener('uncheck', listener);
-        } else if (component.events.spin) {
-            component.addListener('spin', listener);
-            component.addListener('change', listener);
-        } else {
-            component.addListener('change', listener);
-        }
-    }
-
-    // register a change handler in the Ext.form.Field prototype,
-    // which applies to all child classes!
-    var oldInitEvents = Ext.form.Field.prototype.initEvents;
-    Ext.form.Field.prototype.initEvents = function() {
-        var res = oldInitEvents.apply(this, arguments);
-        if (this.name) {
-            var self = this;
-            var scope = angular.element(self.el.dom).scope();
-            var valueInScope;
-            // Note: We cannot use the $watch function here, for the following case:
-            // 1. value in scope: value0
-            // 2. value in ui is set to a value1 with <enter>-key bound to a controller action
-            // 3. controller action does something and resets the value to value0
-            // This case is not detected by the usual $watch logic!
-            scope.$onEval(-1000, function() {
-                var newValue = scope.$get(self.name);
-                if (valueInScope!==newValue) {
-                    setValue(self, newValue);
-                    valueInScope = newValue;
-                }
-            });
-            addChangeListener(this, function() {
-                var value = getValue(self);
-                // This is needed to allow the usecase above (why we cannot use $watch).
-                valueInScope = value;
-                scope.$set(self.name, value);
-                scope.$service("$updateView")();
-            });
-        }
-    };
-
     function shallowCloneArray(array) {
+        if (!array) {
+            return array;
+        }
         return Array.prototype.slice.call(array);
     }
 
     var selectProto = Ext.form.Select.prototype;
+    before(selectProto, "afterRender", function() {
+        $(this.fieldEl.dom).attr('ng:non-bindable', 'true');
+    });
+    after(selectProto, "initEvents", function() {
+        var self = this;
+        if (self.name) {
+            var scope = $(self.fieldEl.dom).scope();
+            this.addListener('change', function() {
+                scope.$set(self.name, self.getValue());
+                scope.$service("$updateView")();
+            });
+            scope.$watch(self.name, function(value) {
+                self.refreshOptions();
+                self.setValue(value);
+                // setValue might have set a default value when we did not have a value yet...
+                var newValue = self.getValue();
+                if (newValue!==value) {
+                    scope.$set(self.name, newValue);
+                }
+            });
+        }
+    });
+
     selectProto.refreshOptions = function() {
         var el = $(this.fieldEl.dom);
         var scope = el.scope();
         var options = shallowCloneArray(scope.$eval(this.options));
-
         this.setOptions(options);
     };
-    var oldShowComponent = selectProto.showComponent;
-    selectProto.showComponent = function() {
-        this.refreshOptions();
-        return oldShowComponent.apply(this, arguments);
-    };
+    before(selectProto, "showComponent", selectProto.refreshOptions);
 
+    var sliderProto = Ext.form.Slider.prototype;
+    after(sliderProto, "initEvents", function() {
+        var self = this;
+        if (self.name) {
+            var scope = $(self.fieldEl.dom).scope();
+            this.addListener('change', function() {
+                scope.$set(self.name, self.getValue());
+                scope.$service("$updateView")();
+            });
+            scope.$watch(self.name, function(value) {
+                if (!value) {
+                    value = 0;
+                }
+                self.setValue(value);
+            });
+        }
+    });
 });

@@ -15,23 +15,8 @@ define(['unit/testutils'], function(testutils) {
                 expect(c.scope.someProp).toBeFalsy();
                 var input = c.element.find("input");
                 input.val(someValue);
-                jasmine.ui.simulate(input[0], "blur");
+                jasmine.ui.simulate(input[0], "change");
                 expect(c.scope.someProp).toBe(someValue);
-            });
-
-            it("should allow to change the scope property back to the old value in event handlers", function() {
-                var oldValue = "oldValue";
-                var c = testutils.compileAndRender('<st:textfield name="someProp" st:event="{blur: \'blur()\'}"></st:textfield>');
-                c.scope.someProp = oldValue;
-                c.scope.$eval();
-                c.scope.blur = function() {
-                    c.scope.someProp = oldValue;
-                };
-                var input = c.element.find("input");
-                input.val(someValue);
-                jasmine.ui.simulate(input[0], "blur");
-                c.scope.$eval();
-                expect(c.widget.getValue()).toBe(oldValue);
             });
         });
 
@@ -68,10 +53,9 @@ define(['unit/testutils'], function(testutils) {
 
             it("should set the scope property from the widget on blur", function() {
                 var c = testutils.compileAndRender('<st:spinnerfield name="someProp"></st:spinnerfield>');
-                expect(c.scope.someProp).toBeFalsy();
                 var input = c.element.find("input");
                 input.val(someNumber);
-                jasmine.ui.simulate(input[0], "blur");
+                jasmine.ui.simulate(input[0], "change");
                 expect(c.scope.someProp).toBe(someNumber);
             });
 
@@ -132,6 +116,7 @@ define(['unit/testutils'], function(testutils) {
                 c.scope.someSelect = 'Value1';
                 c.scope.$eval();
                 expect(c.element.find("input").val()).toBe("Label1");
+                expect(c.widget.getValue()).toBe("Value1");
             });
 
             it("should not modify the options in the scope", function() {
@@ -150,8 +135,50 @@ define(['unit/testutils'], function(testutils) {
                 expect(c.widget.store.getCount()).toBe(1);
                 expect(c.widget.store.getAt(0).data).toEqual(c.scope.someOptions[0]);
             });
+
+            it("should save the first option into the scope as default selection", function() {
+                var c = testutils.compileAndRender('<st:selectfield ng:init="someOptions=[{value: \'Value1\', label: \'Label1\'}]" name="someSelect" options="someOptions" display-field="label" value-field="value"/>');
+                expect(c.scope.someSelect).toBe('Value1');
+            });
         });
 
+        describe('sliderfield', function() {
+            it("should set the widget's value from the scope property", function() {
+                var c = testutils.compileAndRender('<st:sliderfield name="someProp"></st:sliderfield>');
+                expect(c.widget.getValue()).toBe(0);
+                c.scope.someProp = 10;
+                c.scope.$eval();
+                expect(c.widget.getValue()).toBe(10);
+            });
+
+            it("should set the scope property from the widget on change", function() {
+                var c = testutils.compileAndRender('<st:sliderfield name="someProp"></st:sliederfield>');
+                expect(c.scope.someProp).toBe(0);
+                c.widget.thumbs[0].value = 10;
+                c.widget.fireEvent('change');
+                expect(c.scope.someProp).toBe(10);
+            });
+
+        })
+
+        describe('togglefield', function() {
+            it("should set the widget's value from the scope property", function() {
+                var c = testutils.compileAndRender('<st:togglefield name="someProp"></st:togglefield>');
+                expect(c.widget.getValue()).toBe(0);
+                c.scope.someProp = true;
+                c.scope.$eval();
+                expect(c.widget.getValue()).toBe(1);
+            });
+
+            it("should set the scope property from the widget on click", function() {
+                var c = testutils.compileAndRender('<st:togglefield name="someProp"></st:togglefield>');
+                expect(c.scope.someProp).toBe(0);
+                jasmine.ui.simulate(c.widget.fieldEl.dom, "mousedown");
+                jasmine.ui.simulate(c.widget.fieldEl.dom, "mouseup");
+                expect(c.scope.someProp).toBe(1);
+            });
+
+        })
     });
 
 });
