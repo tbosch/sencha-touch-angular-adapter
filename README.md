@@ -24,7 +24,8 @@ Due to the nature of angular this is intended to be used WITHOUT the Sencha Touc
 Sample
 ------------
 - Js fiddle [Todo mobile with sencha touch](http://jsfiddle.net/tigbro/xVBRE/).
-- This project is a Maven-Project. Start it with mvn jetty:start and go to [localhost:8080/stng/demo](localhost:8080/stng/demo)
+- The project [Sencha Angular Toys](http://github.com/tigbro/sencha-toys/) uses most of the angular widgets.
+  A live version is available under [http://tigbro.github.com/sencha-toys/](http://tigbro.github.com/sencha-toys/).
 
 
 Usage

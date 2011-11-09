@@ -89,20 +89,15 @@ define('angular',[], function() {
 });
 
 define('stng/util',['angular'], function(angular) {
-    function stWidget(element, widget) {
-        if (widget === undefined) {
-            return element.data('stwidget');
-        } else {
-            element.data('stwidget', widget);
-            return widget;
-        }
+    function stWidget(element) {
+        var id = element.attr("id");
+        return Ext.getCmp(id);
     }
-
 
     function nearestStWidget(element) {
         var widget;
         while (element.length>0 && element[0] !== document.documentElement) {
-            widget = element.data('stwidget');
+            widget = stWidget(element);
             if (widget) {
                 return widget;
             } else {
@@ -193,7 +188,6 @@ define('stng/util',['angular'], function(angular) {
         }
         if (widget) {
             widget.destroy();
-            stWidget(element, undefined);
         }
     }
 
@@ -355,7 +349,6 @@ define('stng/lists',['ext', 'stng/util', 'stng/customComponent'], function(Ext, 
     angular.directive('st:selected', function(expression) {
         return function(element) {
             var scope = this;
-            //var listElement = element.parents('.x-list-item');
             scope.$watch(expression, function(value) {
                 if (value) {
                     element.addClass('x-item-selected');
@@ -365,6 +358,27 @@ define('stng/lists',['ext', 'stng/util', 'stng/customComponent'], function(Ext, 
             });
         }
     });
+
+    angular.Array.groupBy = function(array, property, propertyLength) {
+        var groupsByKey = {};
+        var groups = [];
+        for (var i=0; i<array.length; i++) {
+            var item = array[i];
+            var key = item[property];
+            if (propertyLength) {
+                key = key.substring(0,propertyLength);
+            }
+            var group = groupsByKey[key];
+            if (!group) {
+                group = {group: key, entries: []};
+                groupsByKey[key] = group;
+                groups.push(group);
+            }
+            group.entries.push(item);
+        }
+        return groups;
+
+    }
 
 });
 
@@ -665,6 +679,7 @@ define('stng/compileIntegration',['angular', 'ext', 'stng/util', 'stng/settings'
             }
 
             options.el = Ext.Element.get(element[0]);
+            options.id = element.attr("id");
             var prototype = Ext.ComponentMgr.types[type].prototype;
             var renderHookName;
             if (prototype.add) {
@@ -680,12 +695,10 @@ define('stng/compileIntegration',['angular', 'ext', 'stng/util', 'stng/settings'
             var oldHook = prototype[renderHookName];
             options[renderHookName] = function() {
                 var res = oldHook.apply(this, arguments);
-                util.stWidget(element, this);
                 compileChildren(this);
                 return res;
             };
             var component = Ext.create(options, type);
-            util.stWidget(element, component);
             component.compileIndex = compileIndex;
             var parent = currentCompileParent;
             if (!parent) {
@@ -889,64 +902,28 @@ define('stng/paging',['ext', 'angular', 'stng/globalScope', 'stng/settings'], fu
 define('stng/events',['angular', 'stng/util'], function(angular, util) {
     var $ = util.jqLite;
 
-    function addEventCallbackToWidget(widget, eventType) {
-        function eventCallback(event) {
-            var target;
-            if (event.getTarget) {
-                target = event.getTarget();
-            } else {
-                target = event.getEl().dom;
-            }
-            // Search from target upwards until we find
-            // an element with a listener for that eventType
-            var widgetEl = widget.dom;
-            var customEvents, scope, ngEl, lastScope;
-            do {
-                ngEl = $(target);
-                customEvents = ngEl.data('customEvents');
-                if (customEvents && customEvents[eventType]) {
-                    var listeners = customEvents[eventType];
-                    scope = ngEl.scope();
-                    lastScope = scope;
-                    for (var i = 0; i < listeners.length; i++) {
-                        scope.$tryEval(listeners[i], ngEl);
-                    }
-                }
-                target = target.parentNode;
-            } while (target !== null && target !== widgetEl);
-            if (lastScope) {
-                lastScope.$service("$updateView")();
-            }
-        }
-
-        // Register the callback only once for every event type...
-        var hasEvent = widget.customEvents && widget.customEvents[eventType];
-        if (!widget.customEvents) {
-            widget.customEvents = {};
-        }
-        widget.customEvents[eventType] = true;
-        if (!hasEvent) {
-            if (widget.events[eventType]) {
-                widget.addListener(eventType, eventCallback);
-            } else {
-                widget.addManagedListener(widget.getTargetEl(), eventType, eventCallback, widget);
-            }
-        }
+    function createEventHandler(element, listenerExpression) {
+        return function() {
+            var scope = element.scope();
+            scope.$tryEval(listenerExpression, element[0]);
+            scope.$service("$updateView")();
+        };
     }
 
-    function addEventListenerToElement(target, eventType, listener) {
-        var ngEl = $(target);
-        var customEvents = ngEl.data('customEvents');
-        if (!customEvents) {
-            customEvents = {};
-            ngEl.data('customEvents',customEvents);
+    function addEventListenerToElement(element, eventType, listenerExpression) {
+        var scope = element.scope();
+        var el = Ext.get(element[0]);
+        el.on(eventType, createEventHandler(element, listenerExpression));
+    }
+
+    function addEventListenerToWidget(element, widget, eventType, listenerExpression) {
+        var scope = element.scope();
+        var handler = createEventHandler(element, listenerExpression);
+        if (widget.events[eventType]) {
+            widget.addListener(eventType, handler);
+        } else {
+            widget.addManagedListener(widget.getTargetEl(), eventType, handler, widget);
         }
-        var listeners = customEvents[eventType];
-        if (!listeners) {
-            listeners = [];
-            customEvents[eventType] = listeners;
-        }
-        listeners.push(listener);
     }
 
     /**
@@ -957,15 +934,15 @@ define('stng/events',['angular', 'stng/util'], function(angular, util) {
         var eventHandlers = angular.fromJson(expression);
 
         var linkFn = function($updateView, element) {
-            var widget = util.nearestStWidget(element);
-            for (var eventType in eventHandlers) {
-                // If we bind the handler to the widget,
-                // we would get a memory leak when the element
-                // is removed from the dom, but the widget still exists.
-                // Therefore we are binding the handler to the dom element.
-                addEventCallbackToWidget(widget, eventType);
-                var handler = eventHandlers[eventType];
-                addEventListenerToElement(element, eventType, handler);
+            var widget = util.stWidget(element);
+            var eventCallbackExpression, eventType;
+            for (eventType in eventHandlers) {
+                eventCallbackExpression = eventHandlers[eventType];
+                if (widget) {
+                    addEventListenerToWidget(element, widget, eventType, eventCallbackExpression);
+                } else {
+                    addEventListenerToElement(element, eventType, eventCallbackExpression);
+                }
             }
         };
         linkFn.$inject = ['$updateView'];
@@ -1072,92 +1049,137 @@ define('stng/waitDialog',['ext', 'angular'], function(Ext, angular) {
     return res;
 });
 
-define('stng/input',['angular'], function(angular) {
-    // deactivate angulars normal input handling
-    angular.widget('input', function() {
-        return function() {
+define('stng/input',['angular', 'stng/util', 'ext'], function(angular, util, Ext) {
+    var $ = util.jqLite;
 
+    var textWidgetTypes = {text: true, number: true, url: true, email: true};
+    var oldInput = angular.widget("input");
+    angular.widget("input", function(element) {
+        var type = element[0].type;
+        if (textWidgetTypes[type]) {
+            type = "text";
+        }
+        // We fake an element during compile phase, as setting the type attribute
+        // is not allowed by the dom (although it works in many browsers...)
+        element[0] = {
+            type: type
+        };
+        var oldBinder = oldInput.apply(this, arguments);
+        var res = function(element) {
+            return oldBinder.apply(this, arguments);
+        };
+        res.$inject = oldBinder.$inject;
+        return res;
+    });
+
+    function after(object, functionName, newFunction) {
+        var oldFunction = object[functionName];
+        object[functionName] = function() {
+            var res = oldFunction.apply(this, arguments);
+            newFunction.apply(this, arguments);
+            return res;
+        };
+    }
+
+    function before(object, functionName, newFunction) {
+        var oldFunction = object[functionName];
+        object[functionName] = function() {
+            newFunction.apply(this, arguments);
+            return oldFunction.apply(this, arguments);
+        };
+    }
+
+    before(Ext.form.Field.prototype, "afterRender", function() {
+        if (!this.el || !this.fieldEl) {
+            return;
+        }
+        var el = $(this.el.dom);
+        var fieldEl = $(this.fieldEl.dom);
+        var copyAttrNames = ["ng:validate", "ng:format"];
+        for (var i=0, attrName, attrValue; i<copyAttrNames.length; i++) {
+            attrName = copyAttrNames[i];
+            attrValue = el.attr(attrName);
+            if (attrValue) {
+                fieldEl.attr(attrName, attrValue);
+            }
         }
     });
 
-    function getValue(component) {
-        if (component.isChecked) {
-            if (component.xtype==='radiofield') {
-                if (component.isChecked()) {
-                    return component.getValue();
-                } else {
-                    return undefined;
-                }
-            } else {
-                return component.isChecked();
-            }
+
+    after(Ext.form.Spinner.prototype, 'initEvents', function() {
+        var self = this;
+        var scope = angular.element(self.el.dom).scope();
+        this.addListener('spin', function() {
+            scope.$set(self.name, self.getValue());
+            scope.$service("$updateView")();
+        });
+    });
+
+    function shallowCloneArray(array) {
+        if (!array) {
+            return array;
         }
-        return component.getValue();
+        return Array.prototype.slice.call(array);
     }
 
-    function setValue(component, value) {
-        if (component.setChecked) {
-            if (component.xtype==='radiofield') {
-                if (component.value == value) {
-                    component.setChecked(true);
-                }
-            } else {
-                component.setChecked(value);
-            }
-        } else {
-            component.setValue(value);
-        }
-    }
-
-    function addChangeListener(component, listener) {
-        if (component.events.check) {
-            component.addListener('check', listener);
-            component.addListener('uncheck', listener);
-        } else if (component.events.spin) {
-            component.addListener('spin', listener);
-            component.addListener('change', listener);
-        } else {
-            component.addListener('change', listener);
-        }
-    }
-
-    // register a change handler in the Ext.form.Field prototype,
-    // which applies to all child classes!
-    var oldInitEvents = Ext.form.Field.prototype.initEvents;
-    Ext.form.Field.prototype.initEvents = function() {
-        var res = oldInitEvents.apply(this, arguments);
-        if (this.name) {
-            var self = this;
-            var scope = angular.element(self.el.dom).scope();
-            var valueInScope;
-            // Note: We cannot use the $watch function here, for the following case:
-            // 1. value in scope: value0
-            // 2. value in ui is set to a value1 with <enter>-key bound to a controller action
-            // 3. controller action does something and resets the value to value0
-            // This case is not detected by the usual $watch logic!
-            scope.$onEval(-1000, function() {
-                var newValue = scope.$get(self.name);
-                if (valueInScope!==newValue) {
-                    setValue(self, newValue);
-                    valueInScope = newValue;
-                }
-            });
-            addChangeListener(this, function() {
-                var value = getValue(self);
-                // This is needed to allow the usecase above (why we cannot use $watch).
-                valueInScope = value;
-                scope.$set(self.name, value);
+    var selectProto = Ext.form.Select.prototype;
+    before(selectProto, "afterRender", function() {
+        $(this.fieldEl.dom).attr('ng:non-bindable', 'true');
+    });
+    after(selectProto, "initEvents", function() {
+        var self = this;
+        if (self.name) {
+            var scope = $(self.fieldEl.dom).scope();
+            this.addListener('change', function() {
+                scope.$set(self.name, self.getValue());
                 scope.$service("$updateView")();
             });
+            scope.$watch(self.name, function(value) {
+                self.refreshOptions();
+                self.setValue(value);
+                // setValue might have set a default value when we did not have a value yet...
+                var newValue = self.getValue();
+                if (newValue!==value) {
+                    scope.$set(self.name, newValue);
+                }
+            });
         }
+    });
+
+    selectProto.refreshOptions = function() {
+        var el = $(this.fieldEl.dom);
+        var scope = el.scope();
+        var options = shallowCloneArray(scope.$eval(this.options));
+        this.setOptions(options);
     };
+    before(selectProto, "showComponent", selectProto.refreshOptions);
+
+    var sliderProto = Ext.form.Slider.prototype;
+    after(sliderProto, "initEvents", function() {
+        var self = this;
+        if (self.name) {
+            var scope = $(self.fieldEl.dom).scope();
+            this.addListener('change', function() {
+                scope.$set(self.name, self.getValue());
+                scope.$service("$updateView")();
+            });
+            scope.$watch(self.name, function(value) {
+                if (!value) {
+                    value = 0;
+                }
+                self.setValue(value);
+            });
+        }
+    });
 });
 
 define('stng/stngStyles',['angular'], function() {
     /* Special styles for sencha-touch-angular-adapter */
-    /* Set block display for spacer. Needed due to our custom tags */
     var styles =
-        ".st-spacer {display: block}";
+        /* Set block display for some elements. Needed due to our custom tags */
+        ".st-spacer,.st-customer,.st-list,.st-grouped-list {display: block} " +
+            /* Set ng-validation-error to override other border declarations for fields */
+            ".ng-validation-error {border: 2px solid red !important}";
     angular.element(document).find('head').append('<style type=\"text/css\">' + styles + '</style>');
 });
 
@@ -1211,6 +1233,22 @@ define('stng/sharedController',['angular'], function(angular) {
     });
 });
 
+define('stng/disabled',['angular', 'stng/util'], function(angular, util) {
+    angular.directive('st:enabled', function(expression) {
+        return function(element) {
+            var scope = this;
+            var widget = util.stWidget(element);
+            scope.$watch(expression, function(value) {
+                if (value) {
+                    widget.enable();
+                } else {
+                    widget.disable();
+                }
+            });
+        }
+    });
+});
+
 // Wrapper module as facade for the internal modules.
 define('st-angular',[
     'angular',
@@ -1227,7 +1265,8 @@ define('st-angular',[
     'stng/waitDialog',
     'stng/input',
     'stng/stngStyles',
-    'stng/sharedController'
+    'stng/sharedController',
+    'stng/disabled'
 ], function(angular, util, compileIntegration) {
     compileIntegration.registerWidgets();
     return {
