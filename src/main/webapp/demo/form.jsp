@@ -11,11 +11,11 @@
 </script>
 
 <st:panel title="Forms" id="forms" ng:controller="FormController" scroll="true">
-
-    <st:custom>
-        Debug:
-        {{data}}
-    </st:custom>
+    <st:fieldset title="Debug">
+        <st:custom>
+            {{data}}
+        </st:custom>
+    </st:fieldset>
 
     <st:textfield name="data.text" label="Text"></st:textfield>
 

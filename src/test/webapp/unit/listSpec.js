@@ -91,4 +91,28 @@ define(['unit/testutils'], function(testutils) {
 
         });
     });
+
+    describe("angular.Array.groupBy", function() {
+        it("should work for empty lists", function() {
+            expect(angular.Array.groupBy([], "someProperty")).toEqual([]);
+        });
+        it("should group the entries by the given property", function() {
+            var input = [{title: "aaa", name: "n1"}, {title: "aaa", name: "n2"}, {title: "baa", name: "n3"}];
+            var groupedList = angular.Array.groupBy(input, "title");
+            expect(groupedList.length).toBe(2);
+            expect(groupedList[0].group).toBe("aaa");
+            expect(groupedList[0].entries).toEqual([{title: "aaa", name: "n1"}, {title: "aaa", name: "n2"}]);
+            expect(groupedList[1].group).toBe("baa");
+            expect(groupedList[1].entries).toEqual([{title: "baa", name: "n3"}]);
+        });
+        it("should group the entries by the given property and the given length", function() {
+            var input = [{title: "aaa", name: "naaa"}, {title: "aab", name: "naab"}, {title: "baa", name: "nbaa"}];
+            var groupedList = angular.Array.groupBy(input, "title", 2);
+            expect(groupedList.length).toBe(2);
+            expect(groupedList[0].group).toBe("aa");
+            expect(groupedList[0].entries).toEqual([{title: "aaa", name: "naaa"}, {title: "aab", name: "naab"}]);
+            expect(groupedList[1].group).toBe("ba");
+            expect(groupedList[1].entries).toEqual([{title: "baa", name: "nbaa"}]);
+        });
+    });
 });

@@ -20,6 +20,8 @@
 
 <st:tabpanel tab-bar-dock="bottom" id="main" fullscreen="true">
     <jsp:include page="lists.jsp"></jsp:include>
+
+    <jsp:include page="groupedlists.jsp"></jsp:include>
     <jsp:include page="toolbars.jsp"></jsp:include>
     <jsp:include page="popups.jsp"></jsp:include>
     <jsp:include page="carousel.jsp"></jsp:include>

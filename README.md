@@ -15,13 +15,11 @@ Please also see [jquery-mobile-angular-adapter](https://github.com/tigbro/jquery
 
 Restrictions
 ------------
-- Due to the nature of angular this is intended to be used WITHOUT the Sencha Touch stores.
-  - Due to their direct link to Stores a new list and grouped-list widget was created that just displays
-    it's content. Use `ng:repeat` for databinding the rows to the model.
-  - Due to it's direct link to stores the `<st:selectfield>` uses an angular-expression in it's options attribute, which
-    gets refreshed whenever the popup opens or the value changes.
-
-- list and grouped-list do not yet support automatically marking pressed items and the indexbar at the right.
+Due to the nature of angular this is intended to be used WITHOUT the Sencha Touch stores:
+- Due to their direct link to Stores a new list and grouped-list widget was created that just displays
+  it's content. Use `ng:repeat` for databinding the rows to the model.
+- Due to it's direct link to stores the `<st:selectfield>` uses an angular-expression in it's options attribute, which
+  gets refreshed whenever the popup opens or the value changes.
 
 Sample
 ------------
@@ -57,7 +55,7 @@ The build is done using maven and requirejs.
 Please install the latest version of the maven plugin `brew`. This project provides a
 snapshot release in `/localrepo`.
 
-Running the tests (No tests yet!!)
+Running the tests
 -------------------
 
 - `mvn clean integration-test -Ptest`: This will do a build and execute the tests using js-test-driver.
@@ -154,12 +152,12 @@ As we are not using stores any more, the list component was recreated. Usage:
 
 The widget creates for every child `<div>` a list entry. That `<div>` can have abritary html content.
 
-### `<st:grouped-list>`
+### `<st:grouped-list>` and `angular.Array.groupBy`
 Grouped list component. Usage:
 
     <st:simple-grouped-list>
-        <div group="{{group.key}}" ng:repeat="group in groups()">
-            <div ng:repeat="item in group.items">
+        <div group="{{group.group}}" ng:repeat="group in list.$groupBy('title')">
+            <div ng:repeat="item in group.entries">
                 {{item.name}}
             </div>
         </div>
@@ -168,6 +166,12 @@ Grouped list component. Usage:
 The widget creates for every child `<div>` a group entry with the heading of the `group` attribute.
 All child `<div>`s of those groups are then styled as normal list entry.
 That `<div>` within the list entries can have abritary html content.
+
+The `$groupBy` function ca be used in all angular expressions (via `angular.Array.groupBy`). It has the following syntax:
+`<list>.$groupBy(<groupProperty>,groupPropertyLength)`
+This will return a grouped list that splits the input list by the substring of length `groupPropertyLength` of the given `groupProperty`.
+The result has the form `[{group: "someGroup", entries: [someEntry1, ...]},...]`.
+
 
 ### `<st:selectfield>`
 The `selectfield` expects an angular expression in the attribute `options` that evaluates to an array.

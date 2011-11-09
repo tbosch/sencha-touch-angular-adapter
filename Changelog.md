@@ -10,7 +10,7 @@ The options that are used to create the sencha widget are appended as a comment 
 The application requires the meta tag `<meta name="auto-start" content="true">` to be present.
 This is needed to prevent initialization during unit tests.
 
-CSS-Bugfix for `<st:spacer>` (did not work before).
+CSS-Bugfix for `<st:spacer>`, `<st:list>` and `<st:grouped-list>` (did not work before).
 
 `st:event` now takes the handlers as json.
 
@@ -19,7 +19,7 @@ Removed `$show` and `$hide` services. Use `$navigate` for this.
 
 Extended `$waitDialog` service.
 
-Added paging support for lists.
+Added paging support for arrays via `$paged`.
 
 Added `st:shared-controller`.
 
@@ -34,6 +34,8 @@ Added `<st:selectfield>` with special attribute `options` as angular expression,
 Added `ng:validate` and `ng:format` support.
 
 Added support for `<st:numberfield>`, `<st:emailfield>` and `<st:urlfield>`
+
+Added `$groupBy` for arrays.
 
 0.9.1
 -------------

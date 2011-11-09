@@ -97,4 +97,25 @@ define(['ext', 'stng/util', 'stng/customComponent'], function(Ext, util) {
         }
     });
 
+    angular.Array.groupBy = function(array, property, propertyLength) {
+        var groupsByKey = {};
+        var groups = [];
+        for (var i=0; i<array.length; i++) {
+            var item = array[i];
+            var key = item[property];
+            if (propertyLength) {
+                key = key.substring(0,propertyLength);
+            }
+            var group = groupsByKey[key];
+            if (!group) {
+                group = {group: key, entries: []};
+                groupsByKey[key] = group;
+                groups.push(group);
+            }
+            group.entries.push(item);
+        }
+        return groups;
+
+    }
+
 });
