@@ -120,7 +120,7 @@ define(['angular', 'ext', 'stng/util', 'stng/settings', 'stng/globalScope'], fun
     if (settings.autoStart) {
         settings.launch = function() {
             var element = $(document.getElementsByTagName("body"));
-            angular.compile(element)(globalScope);
+            angular.compile(element)(globalScope.create());
         };
         new Ext.Application(settings);
     }

@@ -230,7 +230,23 @@ define('ext',[], function() {
 });
 
 define('stng/globalScope',['angular'], function(angular) {
-    return angular.scope();
+    var globalScope;
+    var createCallbacks = [];
+    function create() {
+        globalScope = angular.scope();
+        for (var i=0; i<createCallbacks.length; i++) {
+            createCallbacks[i].call(this, globalScope);
+        }
+        return globalScope;
+    }
+
+    function onCreate(callback) {
+        createCallbacks.push(callback);
+    }
+    return {
+        create: create,
+        onCreate: onCreate
+    }
 });
 
 define('stng/customComponent',['ext', 'stng/util'], function(Ext, util) {
@@ -729,7 +745,7 @@ define('stng/compileIntegration',['angular', 'ext', 'stng/util', 'stng/settings'
     if (settings.autoStart) {
         settings.launch = function() {
             var element = $(document.getElementsByTagName("body"));
-            angular.compile(element)(globalScope);
+            angular.compile(element)(globalScope.create());
         };
         new Ext.Application(settings);
     }
@@ -760,8 +776,10 @@ define('stng/paging',['ext', 'angular', 'stng/globalScope', 'stng/settings'], fu
     }
 
     var globalEvalId = 0;
-    globalScope.$onEval(-99999, function() {
-        globalEvalId++;
+    globalScope.onCreate(function(scope) {
+        scope.$onEval(-99999, function() {
+            globalEvalId++;
+        });
     });
 
     var enhanceFunctions = {
@@ -1177,7 +1195,7 @@ define('stng/stngStyles',['angular'], function() {
     /* Special styles for sencha-touch-angular-adapter */
     var styles =
         /* Set block display for some elements. Needed due to our custom tags */
-        ".st-spacer,.st-customer,.st-list,.st-grouped-list {display: block} " +
+        ".st-spacer,.st-custom,.st-list,.st-grouped-list {display: block} " +
             /* Set ng-validation-error to override other border declarations for fields */
             ".ng-validation-error {border: 2px solid red !important}";
     angular.element(document).find('head').append('<style type=\"text/css\">' + styles + '</style>');

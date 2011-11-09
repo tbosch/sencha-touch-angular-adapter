@@ -18,8 +18,10 @@ define(['ext', 'angular', 'stng/globalScope', 'stng/settings'], function(Ext, an
     }
 
     var globalEvalId = 0;
-    globalScope.$onEval(-99999, function() {
-        globalEvalId++;
+    globalScope.onCreate(function(scope) {
+        scope.$onEval(-99999, function() {
+            globalEvalId++;
+        });
     });
 
     var enhanceFunctions = {

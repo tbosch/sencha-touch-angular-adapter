@@ -21,12 +21,13 @@ define([
         });
 
         it('should refresh when the global scope evals', function() {
+            var scope = globalScope.create();
             var l = [1,2,3,4,5];
             l.pageSize = 2;
             var p1 = angular.Array.paged(l);
             expect(normalize(p1)).toEqual([1,2]);
             l.shift();
-            globalScope.$eval();
+            scope.$eval();
             var p2 = angular.Array.paged(l);
             expect(p1).toBe(p2);
             expect(normalize(p2)).toEqual([2,3]);
