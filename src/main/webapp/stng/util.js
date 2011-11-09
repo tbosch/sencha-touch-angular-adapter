@@ -1,18 +1,13 @@
 define(['angular'], function(angular) {
-    function stWidget(element, widget) {
-        if (widget === undefined) {
-            return element.data('stwidget');
-        } else {
-            element.data('stwidget', widget);
-            return widget;
-        }
+    function stWidget(element) {
+        var id = element.attr("id");
+        return Ext.getCmp(id);
     }
-
 
     function nearestStWidget(element) {
         var widget;
         while (element.length>0 && element[0] !== document.documentElement) {
-            widget = element.data('stwidget');
+            widget = stWidget(element);
             if (widget) {
                 return widget;
             } else {
@@ -103,7 +98,6 @@ define(['angular'], function(angular) {
         }
         if (widget) {
             widget.destroy();
-            stWidget(element, undefined);
         }
     }
 

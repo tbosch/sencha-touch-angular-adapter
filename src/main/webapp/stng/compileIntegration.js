@@ -70,6 +70,7 @@ define(['angular', 'ext', 'stng/util', 'stng/settings', 'stng/globalScope'], fun
             }
 
             options.el = Ext.Element.get(element[0]);
+            options.id = element.attr("id");
             var prototype = Ext.ComponentMgr.types[type].prototype;
             var renderHookName;
             if (prototype.add) {
@@ -85,12 +86,10 @@ define(['angular', 'ext', 'stng/util', 'stng/settings', 'stng/globalScope'], fun
             var oldHook = prototype[renderHookName];
             options[renderHookName] = function() {
                 var res = oldHook.apply(this, arguments);
-                util.stWidget(element, this);
                 compileChildren(this);
                 return res;
             };
             var component = Ext.create(options, type);
-            util.stWidget(element, component);
             component.compileIndex = compileIndex;
             var parent = currentCompileParent;
             if (!parent) {

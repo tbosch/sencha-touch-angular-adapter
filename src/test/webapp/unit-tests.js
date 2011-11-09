@@ -4,6 +4,7 @@
 define([
     'st-angular',
     'unit/testutils',
+    'unit/eventSpec',
     'unit/inputSpec',
     'unit/listSpec',
     'unit/customWidgetSpec',
