@@ -24,6 +24,7 @@ Due to the nature of angular this is intended to be used WITHOUT the Sencha Touc
 Sample
 ------------
 - Js fiddle [Todo mobile with sencha touch](http://jsfiddle.net/tigbro/xVBRE/).
+- Single source app for jquery-mobile and sencha touch: [https://github.com/tigbro/todo-mobile](https://github.com/tigbro/todo-mobile)
 - The project [Sencha Angular Toys](http://github.com/tigbro/sencha-toys/) uses most of the angular widgets.
   A live version is available under [http://tigbro.github.com/sencha-toys/](http://tigbro.github.com/sencha-toys/).
 
