@@ -10,10 +10,10 @@ define(['angular', 'stng/util', 'ext'], function(angular, util, Ext) {
         }
         // We fake an element during compile phase, as setting the type attribute
         // is not allowed by the dom (although it works in many browsers...)
-        element[0] = {
+        var fakeElement = [{
             type: type
-        };
-        var oldBinder = oldInput.apply(this, arguments);
+        }];
+        var oldBinder = oldInput.call(this, fakeElement);
         var res = function(element) {
             return oldBinder.apply(this, arguments);
         };
